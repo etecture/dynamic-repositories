@@ -37,25 +37,29 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api;
+package de.etecture.opensource.dynamicrepositories.technologies;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.etecture.opensource.dynamicrepositories.Sample;
+import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
+import java.util.Collection;
 
 /**
- * marks a method as a bulk update query method.
+ * converts a Sample value to a String value...
  *
  * @author rhk
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Update {
+public class SampleResultConverter implements ResultConverter<Collection<Sample>, String> {
 
-    /**
-     * @return the exception class, that should be thrown when no such entity
-     * was found by the query
-     */
-    Class<? extends Exception> notFoundException() default EntityNotFoundException.class;
+    @Override
+    public boolean isResponsibleFor(Class<?> queryResult, Class<?> methodResult) {
+        return Collection.class.isAssignableFrom(queryResult) && String.class.isAssignableFrom(methodResult);
+    }
+
+    @Override
+    public String convert(Collection<Sample> resultList) {
+        for (Sample result : resultList) {
+            return result.getName() + "::" + result.getId();
+        }
+        return "";
+    }
 }

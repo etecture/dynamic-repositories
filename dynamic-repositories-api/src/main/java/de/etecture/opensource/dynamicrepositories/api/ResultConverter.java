@@ -39,23 +39,33 @@
  */
 package de.etecture.opensource.dynamicrepositories.api;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * marks a method as a bulk update query method.
+ * this is the basis interface for all ResultConverters.
+ *
+ * ResultConverters are used if the result of the query is not the same as the
+ * methods return type.
  *
  * @author rhk
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Update {
+public interface ResultConverter<QueryResultType, ReturnType> {
 
     /**
-     * @return the exception class, that should be thrown when no such entity
-     * was found by the query
+     * called to determine if this ResultConverter instance is responsible for
+     * the given methodReturnType
+     *
+     * @param queryResultType
+     * @param returnType
+     * @return wether or not this Converter is responsible for the given
+     * returnType
      */
-    Class<? extends Exception> notFoundException() default EntityNotFoundException.class;
+    boolean isResponsibleFor(Class<?> queryResultType, Class<?> returnType);
+
+    /**
+     * does the conversion of the given result set.
+     *
+     * @param result the result set to be converted
+     * @return a converted instance of &lt;ReturnType&gt;
+     * @throws Exception if there is something wrong...
+     */
+    ReturnType convert(QueryResultType result) throws Exception;
 }

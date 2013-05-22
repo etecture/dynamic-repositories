@@ -41,6 +41,7 @@ package de.etecture.opensource.dynamicrepositories.spi;
 
 import de.etecture.opensource.dynamicrepositories.api.DeleteSupport;
 import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
+import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.api.Query;
 import de.etecture.opensource.dynamicrepositories.api.UpdateSupport;
 import java.io.Serializable;
@@ -116,7 +117,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @param parameter the map with parameters (may be null or empty)
      * @return the resultset of the query
      */
-    List<T> retrieve(Query query, Class<T> clazz, Map<String, Object> parameter);
+    List<T> retrieve(Query query, Class<T> clazz, Map<String, Object> parameter) throws EntityNotFoundException;
 
     /**
      * executes the given query
@@ -128,7 +129,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @param count the size of the page
      * @return the resultset of the query
      */
-    List<T> retrieve(Query query, Class<T> clazz, Map<String, Object> parameter, int offset, int count);
+    List<T> retrieve(Query query, Class<T> clazz, Map<String, Object> parameter, int offset, int count) throws EntityNotFoundException;
 
     /**
      * executes the given query
@@ -138,7 +139,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @param parameter the map with parameters (may be null or empty)
      * @return the resultset of the query
      */
-    List<T> retrieve(String queryName, Class<T> clazz, Map<String, Object> parameter);
+    List<T> retrieve(String queryName, Class<T> clazz, Map<String, Object> parameter) throws EntityNotFoundException;
 
     /**
      * executes the given query
@@ -150,7 +151,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @param count the size of the page
      * @return the resultset of the query
      */
-    List<T> retrieve(String queryName, Class<T> clazz, Map<String, Object> parameter, int offset, int count);
+    List<T> retrieve(String queryName, Class<T> clazz, Map<String, Object> parameter, int offset, int count) throws EntityNotFoundException;
 
     /**
      * executes the given delete query
@@ -161,7 +162,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @return the number of deleted entities that are made when executed this
      * query
      */
-    int delete(Query query, Class<T> clazz, Map<String, Object> parameter);
+    int delete(Query query, Class<T> clazz, Map<String, Object> parameter) throws EntityNotFoundException;
 
     /**
      * executes the given delete query
@@ -172,7 +173,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @return the number of deleted entities that are made when executed this
      * query
      */
-    int delete(String queryName, Class<T> clazz, Map<String, Object> parameter);
+    int delete(String queryName, Class<T> clazz, Map<String, Object> parameter) throws EntityNotFoundException;
 
     /**
      * executes the given update query
@@ -182,7 +183,7 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @param parameter the map with parameters (may be null or empty)
      * @return the number of updates that are made when executed this query
      */
-    int update(Query query, Class<T> clazz, Map<String, Object> parameter);
+    int update(Query query, Class<T> clazz, Map<String, Object> parameter) throws EntityNotFoundException;
 
     /**
      * executes the given update query
@@ -192,5 +193,5 @@ public interface QueryExecutor<T extends Serializable> extends UpdateSupport<T>,
      * @param parameter the map with parameters (may be null or empty)
      * @return the number of updates that are made when executed this query
      */
-    int update(String queryName, Class<T> clazz, Map<String, Object> parameter);
+    int update(String queryName, Class<T> clazz, Map<String, Object> parameter) throws EntityNotFoundException;
 }
