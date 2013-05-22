@@ -43,7 +43,9 @@ import de.etecture.opensource.dynamicrepositories.api.PageIndex;
 import de.etecture.opensource.dynamicrepositories.api.PageSize;
 import de.etecture.opensource.dynamicrepositories.api.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.Repository;
+import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
 import de.etecture.opensource.dynamicrepositories.api.Retrieve;
+import de.etecture.opensource.dynamicrepositories.extension.ListToSingletonConverter;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryBean;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryInvocationHandler;
@@ -51,6 +53,8 @@ import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.technologies.DummyQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.JPAQueryExecutor;
+import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
+import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Extension;
 import javax.inject.Inject;
 import static org.fest.assertions.Assertions.assertThat;
@@ -63,6 +67,7 @@ import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -77,6 +82,8 @@ import org.junit.runner.RunWith;
 public class SampleRepositoryIT {
 
     @Inject
+    Instance<ResultConverter> converters;
+    @Inject
     @Technology("JPA")
     SampleRepository repository;
     @Inject
@@ -86,7 +93,7 @@ public class SampleRepositoryIT {
     @Deployment(order = 1, name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war")
-                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, JPAQueryExecutor.class, DummyQueryExecutor.class, PageIndex.class, PageSize.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class);
+                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, JPAQueryExecutor.class, DummyQueryExecutor.class, PageIndex.class, PageSize.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class, ResultConverter.class, ListToSingletonConverter.class, SampleResultConverter.class);
         wa.addAsWebInfResource("META-INF/beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsResource("META-INF/persistence.xml");
@@ -106,6 +113,18 @@ public class SampleRepositoryIT {
 
     @Test
     @OperateOnDeployment("test-candidate")
+    public void testResultConverter() {
+        assertThat(converters.iterator()).isNotEmpty();
+        for (ResultConverter converter : converters) {
+            if (converter instanceof ListToSingletonConverter) {
+                return;
+            }
+        }
+        fail("must find ListToSingletonConverter as Bean instance!");
+    }
+
+    @Test
+    @OperateOnDeployment("test-candidate")
     @UsingDataSet("datasets/SampleRepositoryIT.xml")
     public void repositoryFinderTest() throws Exception {
         assertThat(repository).isNotNull();
@@ -117,6 +136,16 @@ public class SampleRepositoryIT {
         assertThat(repository.getSampleName(2l)).isEqualTo("duke");
         assertThat(repository.findAllPagedWithDefaultPageSize(5)).hasSize(10).onProperty("name").excludes("bodo", "duke", "robert", "martin", "nadja");
         assertThat(repository.findAllPagedWithDynamicPageSize(2, 3)).hasSize(3).onProperty("name").containsOnly("robert", "martin", "nadja");
+
+        assertThat(repository.getSampleString(1l)).isEqualTo("bodo::1");
+
+        try {
+            repository.findById(200l);
+            fail("must throw MyException!");
+        } catch (MyException ex) {
+            System.out.println("Correct exception caught:");
+            ex.printStackTrace(System.out);
+        }
     }
 
     @Test

@@ -53,6 +53,7 @@ import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.Retrieve;
 import de.etecture.opensource.dynamicrepositories.api.Update;
 import de.etecture.opensource.dynamicrepositories.api.UpdateSupport;
+import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
 
@@ -77,8 +78,8 @@ public interface SampleRepository extends
     Sample createByUsingTheConstructor(long id, String name);
 
     // --- Finder-Methods -----------------------------------------------------
-    @Retrieve
-    Sample findById(@ParamName("id") long id);
+    @Retrieve(notFoundException = MyException.class)
+    Sample findById(@ParamName("id") long id) throws MyException;
 
     @Retrieve
     List<Sample> findAll();
@@ -98,6 +99,10 @@ public interface SampleRepository extends
         @Query(technology = "Neo4j", value = "dummy-%s-bliblablubb")
     })
     String getSampleName(@ParamName("id") long id);
+
+    @Retrieve
+    @Query(value = "select s from Sample s where s.id = :id", converter = SampleResultConverter.class)
+    String getSampleString(@ParamName("id") long id);
 
     @Retrieve
     @Query("select count(s) from Sample s")
