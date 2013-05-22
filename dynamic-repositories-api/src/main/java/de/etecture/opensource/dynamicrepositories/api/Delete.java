@@ -52,4 +52,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Delete {
+
+    /**
+     * @return the exception class, that should be thrown when no such entity
+     * was found by the query
+     */
+    Class<? extends Exception> notFoundException() default EntityNotFoundException.class;
 }

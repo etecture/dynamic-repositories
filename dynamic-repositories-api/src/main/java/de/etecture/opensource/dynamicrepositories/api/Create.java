@@ -58,4 +58,10 @@ public @interface Create {
      * constructor of the entity
      */
     boolean useConstructor() default false;
+
+    /**
+     * @return the exception class, that should be thrown when the entity
+     * already exists.
+     */
+    Class<? extends Exception> alreadyExistException() default EntityAlreadyExistsException.class;
 }

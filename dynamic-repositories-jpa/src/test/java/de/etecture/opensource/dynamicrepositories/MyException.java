@@ -37,25 +37,24 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package de.etecture.opensource.dynamicrepositories;
 
 /**
- * marks a method as a bulk update query method.
+ * just a sample exception...
  *
  * @author rhk
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Update {
+public class MyException extends Exception {
 
-    /**
-     * @return the exception class, that should be thrown when no such entity
-     * was found by the query
-     */
-    Class<? extends Exception> notFoundException() default EntityNotFoundException.class;
+    public MyException(String message) {
+        super(message);
+    }
+
+    public MyException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public MyException(Throwable cause) {
+        super(cause);
+    }
 }
