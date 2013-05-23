@@ -37,34 +37,67 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api;
+package de.etecture.opensource.dynamicrepositories.spi;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.etecture.opensource.dynamicrepositories.api.Create;
+import de.etecture.opensource.dynamicrepositories.api.Delete;
+import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
+import de.etecture.opensource.dynamicrepositories.api.Retrieve;
+import de.etecture.opensource.dynamicrepositories.api.Update;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * defines a namedquery to be used
  *
  * @author rhk
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface QueryName {
+public interface QueryMetaData<T> {
 
-    /**
-     * @return the name of the query.
-     */
-    String value() default "";
+    public enum Kind {
 
-    /**
-     * @return explicitly defines the {@link ResultConverter} to be used when
-     * this query is executed. The method
-     * {@link ResultConverter#isResponsibleFor(java.lang.Class, java.lang.Class)}
-     * will not be invoked in this case. If this tag is not given, then the
-     * ResultConverter will be searched in all the resultConverters by the
-     * BeanManager.
-     */
-    Class<? extends ResultConverter> converter() default ResultConverter.class;
+        CREATE(Create.class),
+        RETRIEVE(Retrieve.class),
+        UPDATE(Update.class),
+        DELETE(Delete.class);
+        private final Class<? extends Annotation> annotation;
+
+        private Kind(Class<? extends Annotation> annotation) {
+            this.annotation = annotation;
+        }
+
+        public static Kind valueOf(Method method) {
+            for (Kind kind : Kind.values()) {
+                if (method.isAnnotationPresent(kind.annotation)) {
+                    return kind;
+                }
+            }
+            return null;
+        }
+    }
+
+    Set<String> getParameterNames();
+
+    Map<String, Object> getParameterMap();
+
+    Object getParameterValue(String parameterName);
+
+    int getOffset();
+
+    int getCount();
+
+    String getQueryName();
+
+    String getQuery();
+
+    Class<T> getQueryType();
+
+    Kind getQueryKind();
+
+    Exception createException(Class<? extends Annotation> qualifier, String message, Exception cause);
+
+    ResultConverter<T> getConverter();
+
+    Annotation[] getAnnotations();
 }

@@ -39,26 +39,21 @@
  */
 package de.etecture.opensource.dynamicrepositories.extension;
 
-import de.etecture.opensource.dynamicrepositories.api.Create;
-import de.etecture.opensource.dynamicrepositories.api.Delete;
+import de.etecture.opensource.dynamicrepositories.api.Count;
 import de.etecture.opensource.dynamicrepositories.api.DeleteSupport;
-import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
-import de.etecture.opensource.dynamicrepositories.api.FieldName;
-import de.etecture.opensource.dynamicrepositories.api.PageIndex;
-import de.etecture.opensource.dynamicrepositories.api.PageSize;
+import de.etecture.opensource.dynamicrepositories.api.Offset;
 import de.etecture.opensource.dynamicrepositories.api.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.Queries;
 import de.etecture.opensource.dynamicrepositories.api.Query;
-import de.etecture.opensource.dynamicrepositories.api.QueryName;
 import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
-import de.etecture.opensource.dynamicrepositories.api.Retrieve;
-import de.etecture.opensource.dynamicrepositories.api.Update;
 import de.etecture.opensource.dynamicrepositories.api.UpdateSupport;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
+import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData.Kind;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
@@ -68,7 +63,6 @@ import java.util.Set;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.util.AnnotationLiteral;
 
 /**
  * this is an {@link InvocationHandler} for finder methods in an interface,
@@ -78,50 +72,186 @@ import javax.enterprise.util.AnnotationLiteral;
  */
 public class RepositoryInvocationHandler implements InvocationHandler {
 
-    @SuppressWarnings("AnnotationAsSuperInterface")
-    private static class QueryDelegate extends AnnotationLiteral<Query> implements Query {
+    private static class MethodQueryMetaData<T> implements QueryMetaData<T> {
 
-        static final long serialVersionUID = 0;
         private final Method method;
-        private final String repositoryTechnology;
+        private final Object[] values;
+        private final Map<String, Object> parameterMap = new HashMap<>();
+        private final Kind kind;
+        private final String queryName;
+        private final String query;
+        private final ResultConverter<T> converter;
 
-        public QueryDelegate(Method method, String repositoryTechnology) {
+        public MethodQueryMetaData(String technology, Method method, Object[] values) throws Exception {
+            kind = Kind.valueOf(method);
             this.method = method;
-            this.repositoryTechnology = repositoryTechnology;
-        }
-
-        @Override
-        public String technology() {
-            return repositoryTechnology;
-        }
-
-        @Override
-        public String value() {
-            return getQuery().value();
-        }
-
-        private Query getQuery() {
-            if (method.isAnnotationPresent(Query.class)) {
-                return method.getAnnotation(Query.class);
-            } else if (method.isAnnotationPresent(Queries.class)) {
-                for (Query query : method.getAnnotation(Queries.class).value()) {
-                    if (query.technology().equalsIgnoreCase(repositoryTechnology)) {
-                        return query;
-                    }
-                }
-                // not found, so return "default" query, if existing.
-                for (Query query : method.getAnnotation(Queries.class).value()) {
-                    if (query.technology().equalsIgnoreCase("default")) {
-                        return query;
+            this.values = values;
+            final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                for (Annotation annotation : parameterAnnotations[i]) {
+                    if (ParamName.class.isAssignableFrom(annotation.annotationType())) {
+                        parameterMap.put(((ParamName) annotation).value(), values[i]);
                     }
                 }
             }
-            throw new IllegalStateException(String.format("Cannot find Query for technology: %s in method: %s", repositoryTechnology, method.getName()));
+            if (method.isAnnotationPresent(Query.class)) {
+                query = method.getAnnotation(Query.class).value();
+                queryName = method.getAnnotation(Query.class).name().equals("") ? method.getName() : method.getAnnotation(Query.class).name();
+                Class<? extends ResultConverter> converterClass = method.getAnnotation(Query.class).converter();
+                if (converterClass.equals(ResultConverter.class)) {
+                    converter = null;
+                } else {
+                    converter = converterClass.newInstance();
+                }
+            } else if (method.isAnnotationPresent(Queries.class)) {
+                for (Query queryA : method.getAnnotation(Queries.class).value()) {
+                    if (queryA.technology().equalsIgnoreCase(technology)) {
+                        query = queryA.value();
+                        queryName = queryA.name().equals("") ? method.getName() : queryA.name();
+                        Class<? extends ResultConverter> converterClass = queryA.converter();
+                        if (converterClass.equals(ResultConverter.class)) {
+                            converter = null;
+                        } else {
+                            converter = converterClass.newInstance();
+                        }
+                        return;
+                    }
+                }
+                // not found, so return "default" query, if existing.
+                for (Query queryA : method.getAnnotation(Queries.class).value()) {
+                    if (queryA.technology().equalsIgnoreCase("default")) {
+                        query = queryA.value();
+                        queryName = queryA.name().equals("") ? method.getName() : queryA.name();
+                        Class<? extends ResultConverter> converterClass = queryA.converter();
+                        if (converterClass.equals(ResultConverter.class)) {
+                            converter = null;
+                        } else {
+                            converter = converterClass.newInstance();
+                        }
+                        return;
+                    }
+                }
+                query = "";
+                queryName = method.getName();
+                converter = null;
+            } else {
+                query = "";
+                queryName = method.getName();
+                converter = null;
+            }
         }
 
         @Override
-        public Class<? extends ResultConverter> converter() {
-            return getQuery().converter();
+        public Annotation[] getAnnotations() {
+            return method.getAnnotations();
+        }
+
+        @Override
+        public Set<String> getParameterNames() {
+            return parameterMap.keySet();
+        }
+
+        @Override
+        public Map<String, Object> getParameterMap() {
+            return Collections.unmodifiableMap(parameterMap);
+        }
+
+        @Override
+        public Object getParameterValue(String parameterName) {
+            return parameterMap.get(parameterName);
+        }
+
+        @Override
+        public int getOffset() {
+            final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                for (Annotation annotation : parameterAnnotations[i]) {
+                    if (Offset.class.isAssignableFrom(annotation.annotationType())) {
+                        return (int) values[i];
+                    }
+                }
+            }
+            return 0;
+        }
+
+        @Override
+        public int getCount() {
+            if (method.isAnnotationPresent(Count.class)) {
+                return method.getAnnotation(Count.class).value();
+            }
+            final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                for (Annotation annotation : parameterAnnotations[i]) {
+                    if (Count.class.isAssignableFrom(annotation.annotationType())) {
+                        return (int) values[i];
+                    }
+                }
+            }
+            if (Collection.class.isAssignableFrom(getQueryType()) || getQueryType().isArray()) {
+                return -1;
+            }
+            return 1;
+        }
+
+        @Override
+        public String getQueryName() {
+            return queryName;
+        }
+
+        @Override
+        public String getQuery() {
+            return this.query;
+        }
+
+        @Override
+        public Class<T> getQueryType() {
+            // Class<T> baseType = (Class<T>) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
+            return (Class<T>) method.getReturnType();
+        }
+
+        @Override
+        public Kind getQueryKind() {
+            return kind;
+        }
+
+        @Override
+        public Exception createException(Class<? extends Annotation> qualifier, String message, Exception cause) {
+            for (Class<?> exceptionType : method.getExceptionTypes()) {
+                if (exceptionType.isAnnotationPresent(qualifier)) {
+                    try {
+                        try {
+                            // find Constructor with String and Throwable parameter
+                            return (Exception) exceptionType.getConstructor(String.class, Throwable.class).newInstance(message, cause);
+                        } catch (NoSuchMethodException ex) {
+                            try {
+                                // find Constructor with Throwable parameter
+                                return (Exception) exceptionType.getConstructor(Throwable.class).newInstance(cause);
+                            } catch (NoSuchMethodException ex2) {
+                                Exception exception;
+                                try {
+                                    // find Constructor with String parameter
+                                    exception = (Exception) exceptionType.getConstructor(String.class).newInstance(message);
+                                } catch (NoSuchMethodException ex3) {
+                                    // find no-args Constructor
+                                    exception = (Exception) exceptionType.newInstance();
+                                }
+                                if (cause != null) {
+                                    exception.initCause(cause);
+                                }
+                                return exception;
+                            }
+                        }
+                    } catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                        throw new IllegalStateException("cannot create Exception: ", ex);
+                    }
+                }
+            }
+            return cause;
+        }
+
+        @Override
+        public ResultConverter<T> getConverter() {
+            return converter;
         }
     }
     private final BeanManager beanManager;
@@ -140,259 +270,17 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         return qe;
     }
 
-    private int getPageSize(Method method, Object[] values) {
-        if (method.isAnnotationPresent(PageSize.class)) {
-            return method.getAnnotation(PageSize.class).value();
-        }
-        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        for (int i = 0; i < parameterAnnotations.length; i++) {
-            for (Annotation annotation : parameterAnnotations[i]) {
-                if (PageSize.class.isAssignableFrom(annotation.annotationType())) {
-                    return (int) values[i];
-                }
-            }
-        }
-        return -1;
-    }
-
-    private int getPageIndex(Method method, Object[] values) {
-        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        for (int i = 0; i < parameterAnnotations.length; i++) {
-            for (Annotation annotation : parameterAnnotations[i]) {
-                if (PageIndex.class.isAssignableFrom(annotation.annotationType())) {
-                    return (int) values[i];
-                }
-            }
-        }
-        return 0;
-    }
-
-    private Map<String, Object> buildParameterMap(Method method, Object[] values) {
-        Map<String, Object> result = new HashMap<>();
-        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        for (int i = 0; i < parameterAnnotations.length; i++) {
-            for (Annotation annotation : parameterAnnotations[i]) {
-                if (ParamName.class.isAssignableFrom(annotation.annotationType())) {
-                    result.put(((ParamName) annotation).value(), values[i]);
-                }
-            }
-        }
-        return result;
-    }
-
-    private Map<String, Object> buildFieldValueMap(Method method, Object[] values) {
-        Map<String, Object> result = new HashMap<>();
-        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        for (int i = 0; i < parameterAnnotations.length; i++) {
-            for (Annotation annotation : parameterAnnotations[i]) {
-                if (FieldName.class.isAssignableFrom(annotation.annotationType())) {
-                    result.put(((FieldName) annotation).value(), values[i]);
-                }
-            }
-        }
-        return result;
-    }
-
-    private <T extends Exception> T createException(Class<T> type, String message, Throwable cause) throws Exception {
-        try {
-            // find Constructor with String and Throwable parameter
-            return type.getConstructor(String.class, Throwable.class).newInstance(message, cause);
-        } catch (NoSuchMethodException ex) {
-            try {
-                // find Constructor with Throwable parameter
-                return type.getConstructor(Throwable.class).newInstance(cause);
-            } catch (NoSuchMethodException ex2) {
-                T exception;
-                try {
-                    // find Constructor with String parameter
-                    exception = type.getConstructor(String.class).newInstance(message);
-                } catch (NoSuchMethodException ex3) {
-                    // find no-args Constructor
-                    exception = type.newInstance();
-                }
-                if (cause != null) {
-                    exception.initCause(cause);
-                }
-                return exception;
-            }
-        }
-    }
-
-    private <M> M convert(Class<M> returnType, Class<?> queryResultType, Object queryResult) throws Exception {
-        for (Bean bean : beanManager.getBeans(ResultConverter.class)) {
-            ResultConverter converter = (ResultConverter) bean.create(beanManager.createCreationalContext(null));
-            if (converter.isResponsibleFor(queryResultType, returnType)) {
-                return returnType.cast(converter.convert(queryResult));
-            }
-        }
-        return returnType.cast(queryResult);
-    }
-
-    private Object invokeAsFinder(Method method, Object[] args) throws Exception {
-        QueryExecutor qe = getExecutorByTechnology(this.technology);
-        Map<String, Object> parameterMap = buildParameterMap(method, args);
-
-        int pageSize = getPageSize(method, args);
-        if (pageSize == 0) {
-            return Collections.emptyList();
-        }
-
-        try {
-            Collection<?> result;
-
-            if (method.isAnnotationPresent(QueryName.class)) {
-                QueryName queryName = method.getAnnotation(QueryName.class);
-                if (pageSize > 0) {
-                    int pageIndex = getPageIndex(method, args);
-                    result = qe.retrieve(queryName.value(), null, parameterMap, pageIndex, pageSize);
-                } else {
-                    result = qe.retrieve(queryName.value(), null, parameterMap);
-                }
-                if (queryName.converter() != ResultConverter.class) {
-                    return method.getReturnType().cast(queryName.converter().newInstance().convert(result));
-                }
-            } else if (method.isAnnotationPresent(Queries.class) || method.isAnnotationPresent(Query.class)) {
-                QueryDelegate query = new QueryDelegate(method, this.technology);
-                if (pageSize > 0) {
-                    int pageIndex = getPageIndex(method, args);
-                    result = qe.retrieve(query, null, parameterMap, pageIndex, pageSize);
-                } else {
-                    result = qe.retrieve(query, null, parameterMap);
-                }
-                if (query.converter() != ResultConverter.class) {
-                    return method.getReturnType().cast(query.converter().newInstance().convert(result));
-                }
-            } else {
-                String queryName = method.getName();
-                if (pageSize > 0) {
-                    int pageIndex = getPageIndex(method, args);
-                    result = qe.retrieve(queryName, null, parameterMap, pageIndex, pageSize);
-                } else {
-                    result = qe.retrieve(queryName, null, parameterMap);
-                }
-            }
-
-            if (method.getReturnType().isAssignableFrom(result.getClass())) {
-                return method.getReturnType().cast(result);
-            } else {
-                Object converted = convert(method.getReturnType(), Collection.class, result);
-                if (converted == null) {
-                    throw createException(method.getAnnotation(Retrieve.class).notFoundException(), "cannot found result", null);
-                }
-                return converted;
-            }
-        } catch (EntityNotFoundException ex) {
-            throw createException(method.getAnnotation(Retrieve.class).notFoundException(), ex.getMessage(), ex);
-        }
-    }
-
-    private Object invokeAsDelete(Method method, Object[] args) throws Exception {
-        QueryExecutor qe = getExecutorByTechnology(this.technology);
-        Map<String, Object> parameterMap = buildParameterMap(method, args);
-
-        try {
-            if (method.isAnnotationPresent(QueryName.class)) {
-                String queryName = method.getAnnotation(QueryName.class).value();
-                return qe.delete(queryName, null, parameterMap);
-            } else if (method.isAnnotationPresent(Queries.class) || method.isAnnotationPresent(Query.class)) {
-                QueryDelegate query = new QueryDelegate(method, this.technology);
-                return qe.delete(query, null, parameterMap);
-            } else {
-                return qe.delete(method.getName(), null, parameterMap);
-            }
-        } catch (EntityNotFoundException ex) {
-            throw createException(method.getAnnotation(Delete.class).notFoundException(), ex.getMessage(), ex);
-        }
-    }
-
-    private Object invokeAsUpdate(Method method, Object[] args) throws Exception {
-        QueryExecutor qe = getExecutorByTechnology(this.technology);
-        Map<String, Object> parameterMap = buildParameterMap(method, args);
-
-        try {
-            if (method.isAnnotationPresent(QueryName.class)) {
-                String queryName = method.getAnnotation(QueryName.class).value();
-                return qe.update(queryName, null, parameterMap);
-            } else if (method.isAnnotationPresent(Queries.class) || method.isAnnotationPresent(Query.class)) {
-                QueryDelegate query = new QueryDelegate(method, this.technology);
-                return qe.update(query, null, parameterMap);
-            } else {
-                return qe.update(method.getName(), null, parameterMap);
-            }
-        } catch (EntityNotFoundException ex) {
-            throw createException(method.getAnnotation(Update.class).notFoundException(), ex.getMessage(), ex);
-        }
-    }
-
-    private Object invokeAsCreateMethod(Method method, Object[] args) throws Exception {
-        QueryExecutor qe = getExecutorByTechnology(this.technology);
-        Create create = method.getAnnotation(Create.class);
-        assert create != null : "create annotation must be set on method for invokeAsCreateMethod!";
-        try {
-            Object result;
-            if (method.isAnnotationPresent(QueryName.class)) {
-                QueryName queryName = method.getAnnotation(QueryName.class);
-                if (create.useConstructor()) {
-                    result = qe.create(queryName.value(), method.getReturnType(), method.getParameterTypes(), args);
-                } else {
-                    Map<String, Object> fieldValues = buildFieldValueMap(method, args);
-                    result = qe.create(queryName.value(), method.getReturnType(), fieldValues);
-                }
-                if (method.getReturnType().isAssignableFrom(result.getClass())) {
-                    return method.getReturnType().cast(result);
-                } else if (queryName.converter() != ResultConverter.class) {
-                    return method.getReturnType().cast(queryName.converter().newInstance().convert(result));
-                }
-            } else if (method.isAnnotationPresent(Queries.class) || method.isAnnotationPresent(Query.class)) {
-                QueryDelegate query = new QueryDelegate(method, this.technology);
-                if (create.useConstructor()) {
-                    result = qe.create(query, method.getReturnType(), method.getParameterTypes(), args);
-                } else {
-                    Map<String, Object> fieldValues = buildFieldValueMap(method, args);
-                    result = qe.create(query, method.getReturnType(), fieldValues);
-                }
-                if (query.converter() != ResultConverter.class) {
-                    return method.getReturnType().cast(query.converter().newInstance().convert(result));
-                }
-            } else {
-                String queryName = method.getName();
-                if (create.useConstructor()) {
-                    result = qe.create(queryName, method.getReturnType(), method.getParameterTypes(), args);
-                } else {
-                    Map<String, Object> fieldValues = buildFieldValueMap(method, args);
-                    result = qe.create(queryName, method.getReturnType(), fieldValues);
-                }
-            }
-
-            if (method.getReturnType().isAssignableFrom(result.getClass())) {
-                return method.getReturnType().cast(result);
-            } else {
-                Object converted = convert(method.getReturnType(), result.getClass(), result);
-                if (converted == null) {
-                    throw createException(create.alreadyExistException(), "cannot create entity", null);
-                }
-                return converted;
-            }
-        } catch (EntityAlreadyExistsException ex) {
-            throw createException(create.alreadyExistException(), ex.getMessage(), ex);
-        }
-    }
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (method.isAnnotationPresent(Create.class)) {
-            return invokeAsCreateMethod(method, args);
-        } else if (method.isAnnotationPresent(Retrieve.class)) {
-            return invokeAsFinder(method, args);
-        } else if (method.isAnnotationPresent(Update.class)) {
-            return invokeAsUpdate(method, args);
-        } else if (method.isAnnotationPresent(Delete.class)) {
-            return invokeAsDelete(method, args);
+        Object result;
+        if (Kind.valueOf(method) != null) {
+            result = getExecutorByTechnology(this.technology).execute(new MethodQueryMetaData<>(this.technology, method, args));
         } else if (method.getDeclaringClass() == UpdateSupport.class
                 || method.getDeclaringClass() == DeleteSupport.class) {
-            return method.invoke(getExecutorByTechnology(this.technology), args);
+            result = method.invoke(getExecutorByTechnology(this.technology), args);
         } else {
             throw new UnsupportedOperationException("no implementation for method: " + method.getName());
         }
+        return result;
     }
 }

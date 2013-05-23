@@ -48,17 +48,17 @@ import java.util.Collection;
  *
  * @author rhk
  */
-public class SampleResultConverter implements ResultConverter<Collection<Sample>, String> {
+public class SampleResultConverter implements ResultConverter<String> {
 
     @Override
-    public boolean isResponsibleFor(Class<?> queryResult, Class<?> methodResult) {
-        return Collection.class.isAssignableFrom(queryResult) && String.class.isAssignableFrom(methodResult);
-    }
-
-    @Override
-    public String convert(Collection<Sample> resultList) {
-        for (Sample result : resultList) {
-            return result.getName() + "::" + result.getId();
+    public String convert(Class<String> returnType, Object queryResult) {
+        System.out.printf("---> convert %s%n", queryResult);
+        if (Collection.class.isAssignableFrom(queryResult.getClass())) {
+            for (Sample result : (Collection<Sample>) queryResult) {
+                return result.getName() + "::" + result.getId();
+            }
+        } else if (queryResult instanceof Sample) {
+            return ((Sample) queryResult).getName() + "::" + ((Sample) queryResult).getId();
         }
         return "";
     }

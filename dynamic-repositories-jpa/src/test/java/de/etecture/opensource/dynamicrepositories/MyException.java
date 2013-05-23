@@ -39,11 +39,16 @@
  */
 package de.etecture.opensource.dynamicrepositories;
 
+import de.etecture.opensource.dynamicrepositories.api.EntityNotFound;
+import javax.ejb.ApplicationException;
+
 /**
  * just a sample exception...
  *
  * @author rhk
  */
+@EntityNotFound
+@ApplicationException
 public class MyException extends Exception {
 
     public MyException(String message) {

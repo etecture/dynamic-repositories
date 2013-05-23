@@ -59,17 +59,19 @@ public @interface Query {
     String technology() default "default";
 
     /**
+     * @return the name of this query, defaults to the method's name if not
+     * specified
+     */
+    String name() default "";
+
+    /**
      * @return the value of the query.
      */
     String value() default "";
 
     /**
      * @return explicitly defines the {@link ResultConverter} to be used when
-     * this query is executed. The method
-     * {@link ResultConverter#isResponsibleFor(java.lang.Class, java.lang.Class)}
-     * will not be invoked in this case. If this tag is not given, then the
-     * ResultConverter will be searched in all the resultConverters by the
-     * BeanManager.
+     * this query is executed.
      */
     Class<? extends ResultConverter> converter() default ResultConverter.class;
 }
