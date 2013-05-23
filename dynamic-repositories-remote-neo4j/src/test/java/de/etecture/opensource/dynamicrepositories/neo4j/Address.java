@@ -5,12 +5,35 @@ package de.etecture.opensource.dynamicrepositories.neo4j;
  *
  * @author rhk
  */
-@DynamicNode
-public interface Address {
+public class Address {
 
-    String getStreet();
+    String street;
 
-    String getCity();
+    String city;
 
-    String getZipCode();
+    String zipCode;
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
 }
