@@ -45,15 +45,8 @@ import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
-import java.util.Collection;
-import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import org.neo4j.helpers.collection.IteratorUtil;
-import org.neo4j.rest.graphdb.RestAPI;
-import org.neo4j.rest.graphdb.RestAPIFacade;
-import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 
 /**
  * this is an implementation of a {@link QueryExecutor} to use an remote Neo4j
@@ -65,19 +58,8 @@ import org.neo4j.rest.graphdb.query.RestCypherQueryEngine;
 @Singleton
 public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
 
-    @Resource(name = "neo4j-server-url")
-    String neo4jURL;
-    private RestAPI neo4jServer;
-    private RestCypherQueryEngine queryEngine;
-
-    @PostConstruct
-    void init() {
-        if (neo4jURL == null || neo4jURL.trim().length() == 0) {
-            throw new IllegalArgumentException("Env-Entry 'neo4j-server-url' must be specified in the format http://host:port/db/data!");
-        }
-        neo4jServer = new RestAPIFacade(neo4jURL);
-        queryEngine = new RestCypherQueryEngine(neo4jServer);
-    }
+    @EJB
+    Neo4jRestService neo4jServer;
 
     @Override
     protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws EntityNotFoundException {
@@ -86,12 +68,8 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws Exception {
-        Collection<Map<String, Object>> collection = IteratorUtil.asCollection(queryEngine.query(metadata.getQuery(), metadata.getParameterMap()));
-        if (metadata.getConverter() != null) {
-            return metadata.getConverter().convert(metadata.getQueryType(), collection);
-        } else {
-            return (T) collection;
-        }
+        neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+        return null;
     }
 
     @Override
