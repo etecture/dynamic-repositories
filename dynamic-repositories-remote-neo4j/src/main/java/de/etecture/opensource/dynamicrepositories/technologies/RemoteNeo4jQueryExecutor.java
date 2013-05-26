@@ -39,6 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
+import de.etecture.opensource.neo4j.Neo4jRestService;
 import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;

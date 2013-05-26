@@ -1,4 +1,4 @@
-package de.etecture.opensource.dynamicrepositories.neo4j;
+package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.api.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.Query;

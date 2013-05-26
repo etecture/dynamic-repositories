@@ -1,4 +1,4 @@
-package de.etecture.opensource.dynamicrepositories.neo4j;
+package de.etecture.opensource.dynamicrepositories.technologies;
 
 import java.util.ArrayList;
 import java.util.Collections;
