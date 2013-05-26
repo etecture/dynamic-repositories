@@ -41,6 +41,7 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.Sample;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
+import java.lang.reflect.Type;
 import java.util.Collection;
 
 /**
@@ -51,7 +52,7 @@ import java.util.Collection;
 public class SampleResultConverter implements ResultConverter<String> {
 
     @Override
-    public String convert(Class<String> returnType, Object queryResult) {
+    public String convert(Class<String> returnType, Type genericType, Object queryResult) {
         System.out.printf("---> convert %s%n", queryResult);
         if (Collection.class.isAssignableFrom(queryResult.getClass())) {
             for (Sample result : (Collection<Sample>) queryResult) {

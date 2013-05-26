@@ -39,10 +39,6 @@
  */
 package de.etecture.opensource.neo4j;
 
-import de.etecture.opensource.neo4j.CypherResult;
-import de.etecture.opensource.neo4j.Neo4jRestService;
-import de.etecture.opensource.neo4j.Node;
-import de.etecture.opensource.neo4j.Relationship;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;

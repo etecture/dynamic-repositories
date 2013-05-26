@@ -84,6 +84,16 @@ class DefaultCypherResult implements CypherResult {
         return Collections.unmodifiableMap(this.data.get(rowIndex));
     }
 
+    @Override
+    public List<Map<String, Object>> getAllValues() {
+        return Collections.unmodifiableList(this.data);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return this.data.isEmpty();
+    }
+
     void addColumn(String columnName) {
         this.columns.add(columnName);
     }

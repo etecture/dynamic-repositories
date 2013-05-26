@@ -46,6 +46,7 @@ import de.etecture.opensource.dynamicrepositories.api.Retrieve;
 import de.etecture.opensource.dynamicrepositories.api.Update;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,6 +99,8 @@ public interface QueryMetaData<T> {
     Exception createException(Class<? extends Annotation> qualifier, String message, Exception cause);
 
     ResultConverter<T> getConverter();
+
+    Type getQueryGenericType();
 
     Annotation[] getAnnotations();
 }

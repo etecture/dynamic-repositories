@@ -39,13 +39,15 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
-import de.etecture.opensource.neo4j.Neo4jRestService;
 import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.neo4j.CypherResult;
+import de.etecture.opensource.neo4j.Neo4jRestService;
+import java.util.Map;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 
@@ -63,14 +65,29 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     Neo4jRestService neo4jServer;
 
     @Override
-    protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws EntityNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws Exception {
+        CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+        if (!result.isEmpty()) {
+            // get the single result.
+            Map<String, Object> singleResult = result.getRowData(0);
+            if (metadata.getConverter() == null) {
+                return (T) singleResult;
+            } else {
+                return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), singleResult);
+            }
+        } else {
+            throw new EntityNotFoundException(metadata.getQueryType(), "");
+        }
     }
 
     @Override
     protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws Exception {
-        neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
-        return null;
+        CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+        if (metadata.getConverter() == null) {
+            return metadata.getQueryType().cast(result);
+        } else {
+            return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), result.getAllValues());
+        }
     }
 
     @Override

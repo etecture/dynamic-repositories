@@ -16,7 +16,7 @@ import java.util.Collection;
  */
 public abstract class AbstractQueryExecutor implements QueryExecutor {
 
-    protected abstract <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws EntityNotFoundException;
+    protected abstract <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws Exception;
 
     protected abstract <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws Exception;
 

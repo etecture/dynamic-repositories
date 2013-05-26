@@ -69,4 +69,14 @@ public interface CypherResult extends Iterable<Map<String, Object>> {
      * @return the cell value at the given position
      */
     Object getValue(int rowIndex, String columnName);
+
+    /**
+     * @return all the values as a List of Map
+     */
+    List<Map<String, Object>> getAllValues();
+
+    /**
+     * @return wether or not this result has data
+     */
+    boolean isEmpty();
 }

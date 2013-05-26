@@ -40,10 +40,12 @@
 package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.neo4j.Neo4jRestService;
-import de.etecture.opensource.dynamicrepositories.technologies.RemoteNeo4jQueryExecutor;
 import java.io.File;
+import java.util.List;
 import javax.enterprise.inject.spi.Extension;
+import javax.inject.Inject;
 import static org.fest.assertions.Assertions.assertThat;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
@@ -61,10 +63,14 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class SampleRepositoryIT {
 
+    @Inject
+    @Technology("Neo4j")
+    SampleRepository repository;
+
     @Deployment(order = 2, name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war");
-        wa.addClasses(Person.class, Address.class, SampleRepository.class, Neo4jRestService.class, RemoteNeo4jQueryExecutor.class);
+        wa.addClasses(Actor.class, Movie.class, SampleRepository.class, Neo4jRestService.class, RemoteNeo4jQueryExecutor.class);
         wa.addAsWebInfResource("META-INF/beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsServiceProvider(Extension.class, RepositoryExtension.class);
@@ -79,7 +85,19 @@ public class SampleRepositoryIT {
 
     @Test
     @OperateOnDeployment("test-candidate")
-    public void bootstrapTest() throws Exception {
-        assertThat(true).isTrue();
+    public void simpleTest() throws Exception {
+        assertThat(repository).isNotNull();
+        Actor actor = repository.findPersonByName("Keanu Reeves");
+        assertThat(actor).isNotNull();
+        assertThat(actor.getName()).isNotNull().isEqualTo("Keanu Reeves");
+    }
+
+    @Test
+    @OperateOnDeployment("test-candidate")
+    public void simpleListTest() throws Exception {
+        assertThat(repository).isNotNull();
+        List<Movie> movies = repository.findMoviesWherePersonIsAnActor("Keanu Reeves");
+        assertThat(movies).isNotNull().hasSize(3).onProperty("title").contains("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
+        assertThat(movies).onProperty("year").contains("1999-03-31", "2003-05-07", "2003-10-27");
     }
 }

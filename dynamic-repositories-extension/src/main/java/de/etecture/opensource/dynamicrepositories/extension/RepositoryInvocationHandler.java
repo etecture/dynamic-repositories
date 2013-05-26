@@ -55,6 +55,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -207,6 +208,11 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         public Class<T> getQueryType() {
             // Class<T> baseType = (Class<T>) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
             return (Class<T>) method.getReturnType();
+        }
+
+        @Override
+        public Type getQueryGenericType() {
+            return method.getGenericReturnType();
         }
 
         @Override

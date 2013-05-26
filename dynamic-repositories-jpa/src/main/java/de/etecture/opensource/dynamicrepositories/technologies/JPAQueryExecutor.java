@@ -117,7 +117,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
             if (metadata.getConverter() == null) {
                 return singleResult;
             } else {
-                return metadata.getConverter().convert(metadata.getQueryType(), singleResult);
+                return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), singleResult);
             }
         } else {
             throw new EntityNotFoundException(metadata.getQueryType(), "");
@@ -130,7 +130,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
         if (metadata.getConverter() == null) {
             return metadata.getQueryType().cast(resultList);
         } else {
-            return metadata.getConverter().convert(metadata.getQueryType(), resultList);
+            return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), resultList);
         }
     }
 
