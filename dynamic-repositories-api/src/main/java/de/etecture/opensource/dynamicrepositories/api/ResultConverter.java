@@ -39,6 +39,8 @@
  */
 package de.etecture.opensource.dynamicrepositories.api;
 
+import java.lang.reflect.Type;
+
 /**
  * this is the basis interface for all ResultConverters.
  *
@@ -47,25 +49,15 @@ package de.etecture.opensource.dynamicrepositories.api;
  *
  * @author rhk
  */
-public interface ResultConverter<QueryResultType, ReturnType> {
-
-    /**
-     * called to determine if this ResultConverter instance is responsible for
-     * the given methodReturnType
-     *
-     * @param queryResultType
-     * @param returnType
-     * @return wether or not this Converter is responsible for the given
-     * returnType
-     */
-    boolean isResponsibleFor(Class<?> queryResultType, Class<?> returnType);
+public interface ResultConverter<R> {
 
     /**
      * does the conversion of the given result set.
      *
+     * @param returnType the class to be returned
+     * @param genericReturnType the generic type to be returned
      * @param result the result set to be converted
      * @return a converted instance of &lt;ReturnType&gt;
-     * @throws Exception if there is something wrong...
      */
-    ReturnType convert(QueryResultType result) throws Exception;
+    R convert(Class<R> returnType, Type genericReturnType, Object result);
 }

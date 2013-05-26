@@ -49,21 +49,21 @@ public class EntityNotFoundException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	private final Serializable entityId;
-	private final Class<? extends Serializable> entityClass;
+	private final Class<?> entityClass;
 
-	public EntityNotFoundException(Class<? extends Serializable> entityClass, Serializable entityId) {
+	public EntityNotFoundException(Class<?> entityClass, Serializable entityId) {
         super(String.format("an Entity of type %s with id %s cannot be found!", entityClass.getName(), entityId));
 		this.entityId = entityId;
 		this.entityClass = entityClass;
 	}
 
-	public EntityNotFoundException(Throwable cause, Class<? extends Serializable> entityClass, Serializable entityId) {
+	public EntityNotFoundException(Throwable cause, Class<?> entityClass, Serializable entityId) {
         super(String.format("an Entity of type %s with id %s cannot be found!", entityClass.getName(), entityId), cause);
 		this.entityId = entityId;
 		this.entityClass = entityClass;
 	}
 
-	public Class<? extends Serializable> getEntityClass() {
+	public Class<?> getEntityClass() {
 		return entityClass;
 	}
 

@@ -39,13 +39,13 @@
  */
 package de.etecture.opensource.dynamicrepositories;
 
-import de.etecture.opensource.dynamicrepositories.api.PageIndex;
-import de.etecture.opensource.dynamicrepositories.api.PageSize;
+import de.etecture.opensource.dynamicrepositories.api.Count;
+import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.api.Offset;
 import de.etecture.opensource.dynamicrepositories.api.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
 import de.etecture.opensource.dynamicrepositories.api.Retrieve;
-import de.etecture.opensource.dynamicrepositories.extension.ListToSingletonConverter;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryBean;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryInvocationHandler;
@@ -54,7 +54,6 @@ import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.technologies.DummyQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.JPAQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
-import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Extension;
 import javax.inject.Inject;
 import static org.fest.assertions.Assertions.assertThat;
@@ -82,8 +81,6 @@ import org.junit.runner.RunWith;
 public class SampleRepositoryIT {
 
     @Inject
-    Instance<ResultConverter> converters;
-    @Inject
     @Technology("JPA")
     SampleRepository repository;
     @Inject
@@ -93,7 +90,7 @@ public class SampleRepositoryIT {
     @Deployment(order = 1, name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war")
-                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, JPAQueryExecutor.class, DummyQueryExecutor.class, PageIndex.class, PageSize.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class, ResultConverter.class, ListToSingletonConverter.class, SampleResultConverter.class);
+                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, JPAQueryExecutor.class, DummyQueryExecutor.class, Offset.class, Count.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class, ResultConverter.class, SampleResultConverter.class);
         wa.addAsWebInfResource("META-INF/beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsResource("META-INF/persistence.xml");
@@ -106,31 +103,20 @@ public class SampleRepositoryIT {
 
     @Test
     @OperateOnDeployment("test-candidate")
-    public void otherTechnologyTest() throws Exception {
+    public void otherTechnologyTest() {
         assertThat(neo4jRepository).isNotNull();
         assertThat(neo4jRepository.getSampleName(4711L)).isEqualTo("dummy-4711-bliblablubb");
     }
 
     @Test
     @OperateOnDeployment("test-candidate")
-    public void testResultConverter() {
-        assertThat(converters.iterator()).isNotEmpty();
-        for (ResultConverter converter : converters) {
-            if (converter instanceof ListToSingletonConverter) {
-                return;
-            }
-        }
-        fail("must find ListToSingletonConverter as Bean instance!");
-    }
-
-    @Test
-    @OperateOnDeployment("test-candidate")
     @UsingDataSet("datasets/SampleRepositoryIT.xml")
-    public void repositoryFinderTest() throws Exception {
+    public void repositoryFinderTest() {
         assertThat(repository).isNotNull();
         assertThat(repository.findById(1l)).isNotNull().isInstanceOf(Sample.class);
         assertThat(repository.findById(1).getName()).isEqualTo("bodo");
         assertThat(repository.findById(2).getName()).isEqualTo("duke");
+        assertThat(repository.findAllByQuery()).hasSize(15).onProperty("name").contains("bodo", "duke");
         assertThat(repository.findAll()).hasSize(15).onProperty("name").contains("bodo", "duke");
         assertThat(repository.getSampleCount()).isEqualTo(15l);
         assertThat(repository.getSampleName(2l)).isEqualTo("duke");
@@ -140,17 +126,16 @@ public class SampleRepositoryIT {
         assertThat(repository.getSampleString(1l)).isEqualTo("bodo::1");
 
         try {
-            repository.findById(200l);
+            repository.findByIdWithException(200l);
             fail("must throw MyException!");
         } catch (MyException ex) {
-            System.out.println("Correct exception caught:");
-            ex.printStackTrace(System.out);
+            System.out.println(String.format("Correct exception caught: %s (%s)", ex.getClass().getSimpleName(), ex.getMessage()));
         }
     }
 
     @Test
     @OperateOnDeployment("test-candidate")
-    public void repositoryCreateMethodTest() throws Exception {
+    public void repositoryCreateMethodTest() {
         assertThat(repository).isNotNull();
         Sample sample = repository.create(1l);
         assertThat(sample).isNotNull();
@@ -164,37 +149,39 @@ public class SampleRepositoryIT {
         assertThat(sample.getName()).isEqualTo("timo");
         assertThat(repository.findById(2l)).isEqualTo(sample);
 
-        sample = repository.createByUsingTheConstructor(3l, "timo");
-        assertThat(sample).isNotNull();
-        assertThat(sample.getId()).isEqualTo(3l);
-        assertThat(sample.getName()).isEqualTo("timo");
-        assertThat(repository.findById(3l)).isEqualTo(sample);
+        assertThat(repository.updateName("timo", "klaus")).isEqualTo(1);
 
-        assertThat(repository.updateName("timo", "klaus")).isEqualTo(2);
-
-        assertThat(repository.deleteByName("klaus")).isEqualTo(2);
+        assertThat(repository.deleteByName("klaus")).isEqualTo(1);
     }
 
     @Test
     @OperateOnDeployment("test-candidate")
     @UsingDataSet("datasets/SampleRepositoryIT.xml")
-    public void repositoryUpdateSupportTest() throws Exception {
+    public void repositoryUpdateSupportTest() {
         assertThat(repository).isNotNull();
         Sample sample = repository.findById(1l);
         sample.setName("ingo");
-        sample = repository.update(sample);
-        assertThat(sample.getName()).isEqualTo("ingo");
-        assertThat(repository.getSampleName(1l)).isEqualTo("ingo");
+        try {
+            sample = repository.update(sample);
+            assertThat(sample.getName()).isEqualTo("ingo");
+            assertThat(repository.getSampleName(1l)).isEqualTo("ingo");
+        } catch (EntityNotFoundException ex) {
+            fail(ex.getMessage());
+        }
     }
 
     @Test
     @OperateOnDeployment("test-candidate")
     @UsingDataSet("datasets/SampleRepositoryIT.xml")
-    public void repositoryDeleteSupportTest() throws Exception {
+    public void repositoryDeleteSupportTest() {
         assertThat(repository).isNotNull();
         assertThat(repository.getSampleCount()).isEqualTo(15l);
         Sample sample = repository.findById(1l);
-        repository.delete(sample);
-        assertThat(repository.getSampleCount()).isEqualTo(14l);
+        try {
+            repository.delete(sample);
+            assertThat(repository.getSampleCount()).isEqualTo(14l);
+        } catch (EntityNotFoundException ex) {
+            fail(ex.getMessage());
+        }
     }
 }

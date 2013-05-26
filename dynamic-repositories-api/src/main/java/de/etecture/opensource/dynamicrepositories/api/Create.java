@@ -52,16 +52,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Create {
-
-    /**
-     * @return wether or not the create method must delegate to a corresponding
-     * constructor of the entity
-     */
-    boolean useConstructor() default false;
-
-    /**
-     * @return the exception class, that should be thrown when the entity
-     * already exists.
-     */
-    Class<? extends Exception> alreadyExistException() default EntityAlreadyExistsException.class;
 }
