@@ -37,23 +37,70 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api;
+package de.etecture.opensource.dynamicrepositories.spi;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.etecture.opensource.dynamicrepositories.api.Create;
+import de.etecture.opensource.dynamicrepositories.api.Delete;
+import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
+import de.etecture.opensource.dynamicrepositories.api.Retrieve;
+import de.etecture.opensource.dynamicrepositories.api.Update;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * if applied to a method, then this annotation marks the query to be paged with
- * the given default size. When applied to a parameter, then this parameter is
- * used as the page size.
  *
  * @author rhk
  */
-@Target({ElementType.METHOD, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface PageSize {
+public interface QueryMetaData<T> {
 
-    int value() default -1;
+    public enum Kind {
+
+        CREATE(Create.class),
+        RETRIEVE(Retrieve.class),
+        UPDATE(Update.class),
+        DELETE(Delete.class);
+        private final Class<? extends Annotation> annotation;
+
+        private Kind(Class<? extends Annotation> annotation) {
+            this.annotation = annotation;
+        }
+
+        public static Kind valueOf(Method method) {
+            for (Kind kind : Kind.values()) {
+                if (method.isAnnotationPresent(kind.annotation)) {
+                    return kind;
+                }
+            }
+            return null;
+        }
+    }
+
+    Set<String> getParameterNames();
+
+    Map<String, Object> getParameterMap();
+
+    Object getParameterValue(String parameterName);
+
+    int getOffset();
+
+    int getCount();
+
+    String getQueryName();
+
+    String getQuery();
+
+    Class<T> getQueryType();
+
+    Kind getQueryKind();
+
+    Exception createException(Class<? extends Annotation> qualifier, String message, Exception cause);
+
+    ResultConverter<T> getConverter();
+
+    Type getQueryGenericType();
+
+    Annotation[] getAnnotations();
 }

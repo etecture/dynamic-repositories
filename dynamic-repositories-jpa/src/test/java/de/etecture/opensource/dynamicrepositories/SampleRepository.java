@@ -39,16 +39,14 @@
  */
 package de.etecture.opensource.dynamicrepositories;
 
+import de.etecture.opensource.dynamicrepositories.api.Count;
 import de.etecture.opensource.dynamicrepositories.api.Create;
 import de.etecture.opensource.dynamicrepositories.api.Delete;
 import de.etecture.opensource.dynamicrepositories.api.DeleteSupport;
-import de.etecture.opensource.dynamicrepositories.api.FieldName;
-import de.etecture.opensource.dynamicrepositories.api.PageIndex;
-import de.etecture.opensource.dynamicrepositories.api.PageSize;
+import de.etecture.opensource.dynamicrepositories.api.Offset;
 import de.etecture.opensource.dynamicrepositories.api.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.Queries;
 import de.etecture.opensource.dynamicrepositories.api.Query;
-import de.etecture.opensource.dynamicrepositories.api.QueryName;
 import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.Retrieve;
 import de.etecture.opensource.dynamicrepositories.api.Update;
@@ -64,34 +62,39 @@ import javax.annotation.security.RolesAllowed;
  */
 @Repository
 public interface SampleRepository extends
-        DeleteSupport<Sample>,
-        UpdateSupport<Sample> {
+        DeleteSupport,
+        UpdateSupport {
 
     // --- Create-Methods -----------------------------------------------------
     @Create
-    Sample create(@FieldName("id") long id);
+    Sample create(@ParamName("id") long id);
 
     @Create
-    Sample create(@FieldName("id") long id, @FieldName("name") String name);
-
-    @Create(useConstructor = true)
-    Sample createByUsingTheConstructor(long id, String name);
+    Sample create(@ParamName("id") long id, @ParamName("name") String name);
 
     // --- Finder-Methods -----------------------------------------------------
-    @Retrieve(notFoundException = MyException.class)
-    Sample findById(@ParamName("id") long id) throws MyException;
+    @Retrieve
+    Sample findById(@ParamName("id") long id);
+
+    @Retrieve
+    @Query(name = "findById")
+    Sample findByIdWithException(@ParamName("id") long id) throws MyException;
 
     @Retrieve
     List<Sample> findAll();
 
     @Retrieve
-    @PageSize(10)
-    @QueryName("findAll")
-    List<Sample> findAllPagedWithDefaultPageSize(@PageIndex int index);
+    @Query("select s from Sample s")
+    List<Sample> findAllByQuery();
 
     @Retrieve
-    @QueryName("findAll")
-    List<Sample> findAllPagedWithDynamicPageSize(@PageIndex int index, @PageSize int count);
+    @Count(10)
+    @Query(name = "findAll")
+    List<Sample> findAllPagedWithDefaultPageSize(@Offset int index);
+
+    @Retrieve
+    @Query(name = "findAll")
+    List<Sample> findAllPagedWithDynamicPageSize(@Offset int index, @Count int count);
 
     @Retrieve
     @Queries({
@@ -111,11 +114,11 @@ public interface SampleRepository extends
     // --- Bulk-Update-Methods ------------------------------------------------
     @Update
     @Query("update Sample s set s.name = :newname where s.name = :oldname")
-    int updateName(@ParamName("oldname") String oldname, @ParamName("newname") String newname);
+    Integer updateName(@ParamName("oldname") String oldname, @ParamName("newname") String newname);
 
     // --- Bulk-Delete-Methods ------------------------------------------------
     @Delete
     @Query("delete from Sample s where s.name = :name")
     @RolesAllowed("SampleDelete")
-    int deleteByName(@ParamName("name") String name);
+    Integer deleteByName(@ParamName("name") String name);
 }

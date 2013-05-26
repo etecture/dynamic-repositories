@@ -45,13 +45,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * this annotation specifies the name of a field in a {@link Create} method
+ * if applied to a method, then this annotation marks the query to be paged with
+ * the given default size. When applied to a parameter, then this parameter is
+ * used as the page size.
  *
  * @author rhk
  */
-@Target(ElementType.PARAMETER)
+@Target({ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FieldName {
+public @interface Count {
 
-    String value();
+    int value() default -1;
 }

@@ -53,9 +53,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
 
-    /**
-     * @return the exception class, that should be thrown when no such entity
-     * was found by the query
-     */
-    Class<? extends Exception> notFoundException() default EntityNotFoundException.class;
 }
