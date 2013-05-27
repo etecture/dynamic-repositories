@@ -41,7 +41,7 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
-import de.etecture.opensource.neo4j.Neo4jRestService;
+import de.herschke.neo4j.uplink.ejb.Neo4jRestService;
 import java.io.File;
 import java.util.List;
 import javax.enterprise.inject.spi.Extension;
