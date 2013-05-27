@@ -45,8 +45,8 @@ import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
-import de.etecture.opensource.neo4j.CypherResult;
-import de.etecture.opensource.neo4j.Neo4jRestService;
+import de.herschke.neo4j.uplink.api.CypherResult;
+import de.herschke.neo4j.uplink.api.Neo4jUplink;
 import java.util.Map;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
@@ -62,7 +62,7 @@ import javax.ejb.Singleton;
 public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
 
     @EJB
-    Neo4jRestService neo4jServer;
+    Neo4jUplink neo4jServer;
 
     @Override
     protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws Exception {
