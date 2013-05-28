@@ -39,7 +39,6 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
-import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
@@ -91,18 +90,28 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     }
 
     @Override
+    protected <T> T executeUpdateQuery(QueryMetaData<T> metadata) throws Exception {
+        return executeSingletonQuery(metadata);
+    }
+
+    @Override
     protected <T> T executeBulkUpdateQuery(QueryMetaData<T> metadata) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return executeCollectionQuery(metadata);
+    }
+
+    @Override
+    protected <T> T executeDeleteQuery(QueryMetaData<T> metadata) throws Exception {
+        return executeSingletonQuery(metadata);
     }
 
     @Override
     protected <T> T executeBulkDeleteQuery(QueryMetaData<T> metadata) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return executeCollectionQuery(metadata);
     }
 
     @Override
-    protected <T> T executeCreateQuery(QueryMetaData<T> metadata) throws EntityAlreadyExistsException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected <T> T executeCreateQuery(QueryMetaData<T> metadata) throws Exception {
+        return executeSingletonQuery(metadata);
     }
 
     @Override
