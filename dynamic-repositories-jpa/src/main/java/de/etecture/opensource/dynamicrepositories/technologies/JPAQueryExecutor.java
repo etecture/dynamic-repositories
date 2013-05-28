@@ -135,13 +135,23 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
     }
 
     @Override
+    protected <T> T executeUpdateQuery(QueryMetaData<T> metadata) throws Exception {
+        return metadata.getQueryType().cast(createQuery(metadata).executeUpdate());
+    }
+
+    @Override
     protected <T> T executeBulkUpdateQuery(QueryMetaData<T> metadata) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected <T> T executeDeleteQuery(QueryMetaData<T> metadata) throws Exception {
         return metadata.getQueryType().cast(createQuery(metadata).executeUpdate());
     }
 
     @Override
     protected <T> T executeBulkDeleteQuery(QueryMetaData<T> metadata) {
-        return metadata.getQueryType().cast(createQuery(metadata).executeUpdate());
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
