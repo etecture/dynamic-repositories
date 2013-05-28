@@ -20,11 +20,15 @@ public abstract class AbstractQueryExecutor implements QueryExecutor {
 
     protected abstract <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws Exception;
 
+    protected abstract <T> T executeUpdateQuery(QueryMetaData<T> metadata) throws Exception;
+
     protected abstract <T> T executeBulkUpdateQuery(QueryMetaData<T> metadata) throws Exception;
+
+    protected abstract <T> T executeDeleteQuery(QueryMetaData<T> metadata) throws Exception;
 
     protected abstract <T> T executeBulkDeleteQuery(QueryMetaData<T> metadata) throws Exception;
 
-    protected abstract <T> T executeCreateQuery(QueryMetaData<T> metadata) throws EntityAlreadyExistsException;
+    protected abstract <T> T executeCreateQuery(QueryMetaData<T> metadata) throws Exception;
 
     @Override
     public <T> T execute(QueryMetaData<T> metadata) throws Exception {
@@ -46,9 +50,25 @@ public abstract class AbstractQueryExecutor implements QueryExecutor {
                     }
                 }
             case DELETE:
-                return executeBulkDeleteQuery(metadata);
+                if (Collection.class.isAssignableFrom(metadata.getQueryType()) || metadata.getQueryType().isArray()) {
+                    return executeBulkDeleteQuery(metadata);
+                } else {
+                    try {
+                        return executeDeleteQuery(metadata);
+                    } catch (EntityNotFoundException ex) {
+                        throw metadata.createException(EntityNotFound.class, "cannot find result", ex);
+                    }
+                }
             case UPDATE:
-                return executeBulkUpdateQuery(metadata);
+                if (Collection.class.isAssignableFrom(metadata.getQueryType()) || metadata.getQueryType().isArray()) {
+                    return executeBulkUpdateQuery(metadata);
+                } else {
+                    try {
+                        return executeUpdateQuery(metadata);
+                    } catch (EntityNotFoundException ex) {
+                        throw metadata.createException(EntityNotFound.class, "cannot find result", ex);
+                    }
+                }
             default:
                 throw new UnsupportedOperationException(String.format("Query of kind: %s is not supported.", metadata.getQueryKind()));
         }
