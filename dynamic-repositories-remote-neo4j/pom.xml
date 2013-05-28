@@ -33,12 +33,12 @@
         <dependency>
             <groupId>de.herschke</groupId>
             <artifactId>neo4j-uplink-api</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>de.herschke</groupId>
             <artifactId>neo4j-uplink-ejb</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
