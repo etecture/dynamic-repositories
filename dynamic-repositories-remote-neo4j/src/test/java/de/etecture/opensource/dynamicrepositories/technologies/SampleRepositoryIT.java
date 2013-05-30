@@ -94,10 +94,34 @@ public class SampleRepositoryIT {
 
     @Test
     @OperateOnDeployment("test-candidate")
+    public void nestedObjectTest() throws Exception {
+        assertThat(repository).isNotNull();
+        Actor actor = repository.findPersonWithInitialMovieByName("Keanu Reeves", "The Matrix");
+        assertThat(actor).isNotNull();
+        assertThat(actor.getName()).isNotNull().isEqualTo("Keanu Reeves");
+        assertThat(actor.getInitialMovie()).isNotNull();
+        assertThat(actor.getInitialMovie().getTitle()).isEqualTo("The Matrix");
+        assertThat(actor.getInitialMovie().getYear()).isEqualTo("1999-03-31");
+    }
+
+    @Test
+    @OperateOnDeployment("test-candidate")
+    public void nestedListTest() throws Exception {
+        assertThat(repository).isNotNull();
+        Actor actor = repository.findPersonWithMoviesByName("Keanu Reeves");
+        assertThat(actor).isNotNull();
+        assertThat(actor.getName()).isNotNull().isEqualTo("Keanu Reeves");
+        assertThat(actor.getMovies()).isNotNull().hasSize(3).onProperty("title").containsOnly("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
+        assertThat(actor.getMovies()).onProperty("year").containsOnly("1999-03-31", "2003-05-07", "2003-10-27");
+        assertThat(actor.getRoles()).isNotNull().hasSize(1).containsOnly("Neo");
+    }
+
+    @Test
+    @OperateOnDeployment("test-candidate")
     public void simpleListTest() throws Exception {
         assertThat(repository).isNotNull();
         List<Movie> movies = repository.findMoviesWherePersonIsAnActor("Keanu Reeves");
-        assertThat(movies).isNotNull().hasSize(3).onProperty("title").contains("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
-        assertThat(movies).onProperty("year").contains("1999-03-31", "2003-05-07", "2003-10-27");
+        assertThat(movies).isNotNull().hasSize(3).onProperty("title").containsOnly("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
+        assertThat(movies).onProperty("year").containsOnly("1999-03-31", "2003-05-07", "2003-10-27");
     }
 }
