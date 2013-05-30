@@ -15,15 +15,15 @@ import java.util.List;
 public interface SampleRepository {
 
     @Retrieve
-    @Query(value = "START n=node:node_auto_index(name={actorname}) \n"
-            + "MATCH n-[r:ACTS_IN]->m \n"
+    @Query(value = "MATCH (n:Actor) \n"
+            + "WHERE n.name = {actorname} \n"
             + "RETURN n.name as `name`",
             converter = ProxyConverter.class)
     Actor findPersonByName(@ParamName("actorname") String name);
 
     @Retrieve
-    @Query(value = "START n=node:node_auto_index(name={actorname}) \n"
-            + "MATCH n-[r:ACTS_IN]->m \n"
+    @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(m:Movie) \n"
+            + "WHERE n.name = {actorname} \n"
             + "RETURN m.title as `title`, m.year as `year`",
             converter = ProxyConverter.class)
     List<Movie> findMoviesWherePersonIsAnActor(@ParamName("actorname") String name);
