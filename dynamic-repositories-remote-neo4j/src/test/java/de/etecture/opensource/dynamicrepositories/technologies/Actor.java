@@ -11,5 +11,9 @@ public interface Actor {
 
     String getName();
 
+    List<String> getRoles();
+
+    Movie getInitialMovie();
+
     List<Movie> getMovies();
 }

@@ -10,4 +10,6 @@ public interface Movie {
     String getTitle();
 
     String getYear();
+
+    Actor getActor(String role);
 }
