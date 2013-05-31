@@ -37,22 +37,28 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.technologies;
+package de.etecture.opensource.dynamicrepositories.technologies.utils;
 
 import java.util.List;
 
 /**
- * represents a sample entity for test purposes.
  *
  * @author rhk
  */
-public interface Actor {
+public final class ResultHelper {
 
-    String getName();
+    private ResultHelper() {
+    }
 
-    List<String> getRoles();
-
-    Movie getInitialMovie();
-
-    List<Movie> getMovies();
+    public static Object extractValue(Object value, int index) {
+        if (value instanceof List) {
+            return ((List) value).get(index);
+        } else if (value instanceof Object[]) {
+            return ((Object[]) value)[index];
+        } else if (index == 0) {
+            return value;
+        } else {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
+    }
 }
