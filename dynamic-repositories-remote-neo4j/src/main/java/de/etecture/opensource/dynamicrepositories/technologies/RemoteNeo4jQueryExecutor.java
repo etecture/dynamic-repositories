@@ -46,6 +46,9 @@ import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.herschke.neo4j.uplink.api.CypherResult;
 import de.herschke.neo4j.uplink.api.Neo4jUplink;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
@@ -65,27 +68,41 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws Exception {
-        CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
-        if (!result.isEmpty()) {
-            // get the single result.
-            Map<String, Object> singleResult = result.getRowData(0);
-            if (metadata.getConverter() == null) {
-                return (T) singleResult;
+        if (metadata.getConverter() == null && metadata.getQueryType().isInterface()) {
+            List<T> resultList = neo4jServer.executeCypherQuery(metadata.getQueryType(), metadata.getQuery(), metadata.getParameterMap());
+            if (!resultList.isEmpty()) {
+                return resultList.get(0);
             } else {
-                return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), singleResult);
+                throw new EntityNotFoundException(metadata.getQueryType(), "");
             }
         } else {
-            throw new EntityNotFoundException(metadata.getQueryType(), "");
+            CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+            if (!result.isEmpty()) {
+                // get the single result.
+                Map<String, Object> singleResult = result.getRowData(0);
+                if (metadata.getConverter() == null) {
+                    return (T) singleResult;
+                } else {
+                    return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), singleResult);
+                }
+            } else {
+                throw new EntityNotFoundException(metadata.getQueryType(), "");
+            }
         }
     }
 
     @Override
     protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws Exception {
-        CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
-        if (metadata.getConverter() == null) {
-            return metadata.getQueryType().cast(result);
+        if (metadata.getConverter() == null && metadata.getQueryType().isInterface()) {
+            Class<?> componentType = metadata.getQueryType().isArray() ? metadata.getQueryType().getComponentType() : getComponentType(metadata.getQueryGenericType());
+            return (T) neo4jServer.executeCypherQuery(componentType, metadata.getQuery(), metadata.getParameterMap());
         } else {
-            return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), result.getAllValues());
+            CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+            if (metadata.getConverter() == null) {
+                return metadata.getQueryType().cast(result);
+            } else {
+                return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), result.getAllValues());
+            }
         }
     }
 
@@ -122,5 +139,14 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     @Override
     public <T> T update(T instance) throws EntityNotFoundException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private Class<?> getComponentType(Type type) {
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pgrt = (ParameterizedType) type;
+            return (Class<?>) pgrt.getActualTypeArguments()[0];
+        } else {
+            throw new ClassCastException(String.format("the genericReturnType: %s is not a ParameterizedType!", type == null ? "null" : type.toString()));
+        }
     }
 }
