@@ -278,14 +278,23 @@ public class RepositoryInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Object result;
-        if (Kind.valueOf(method) != null) {
-            result = getExecutorByTechnology(this.technology).execute(new MethodQueryMetaData<>(this.technology, method, args));
-        } else if (method.getDeclaringClass() == UpdateSupport.class
-                || method.getDeclaringClass() == DeleteSupport.class) {
-            result = method.invoke(getExecutorByTechnology(this.technology), args);
-        } else {
-            throw new UnsupportedOperationException("no implementation for method: " + method.getName());
+        Object result = null;
+        try {
+            if (Kind.valueOf(method) != null) {
+                result = getExecutorByTechnology(this.technology).execute(new MethodQueryMetaData<>(this.technology, method, args));
+            } else if (method.getDeclaringClass() == UpdateSupport.class
+                    || method.getDeclaringClass() == DeleteSupport.class) {
+                result = method.invoke(getExecutorByTechnology(this.technology), args);
+            } else {
+                throw new UnsupportedOperationException("no implementation for method: " + method.getName());
+            }
+        } catch (Exception exception) {
+            for (int i = 0; i < method.getExceptionTypes().length; i++) {
+                if (exception.getClass().isAssignableFrom(method.getExceptionTypes()[i])) {
+                    throw exception;
+                }
+            }
+            throw new UnsupportedOperationException(String.format("The repository method: %s#%s does not declare to throw: %s - but this exception is raised in execution of this method!%nMessage of raised Exception is: %s", method.getDeclaringClass().getSimpleName(), method.getName(), exception.getClass().getSimpleName(), exception.getMessage()), exception);
         }
         return result;
     }
