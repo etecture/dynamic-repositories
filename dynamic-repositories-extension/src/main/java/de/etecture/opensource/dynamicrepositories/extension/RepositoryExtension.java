@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
@@ -61,14 +62,15 @@ import javax.enterprise.inject.spi.ProcessInjectionTarget;
 public class RepositoryExtension implements Extension {
     private Set<Class<?>> repositoryInterfaces = new HashSet<>();
     private Map<RepositoryKey, RepositoryBean> repositoryBeans = new HashMap<>();
+    private final Logger log = Logger.getLogger("RepositoryExtension");
 
 	void beforeBeanDiscovery(@Observes BeforeBeanDiscovery bbd) {
-		System.out.println("beginning the scanning process");
+        log.fine("beginning the scanning process");
 	}
 
 	<T> void processAnnotatedType(@Observes ProcessAnnotatedType<T> pat) {
         if (pat.getAnnotatedType().isAnnotationPresent(Repository.class)) {
-            System.out.println("... found repository interface type: " + pat.getAnnotatedType().getJavaClass().getName());
+            log.fine(String.format("... found repository interface type: %s%n", pat.getAnnotatedType().getJavaClass().getName()));
             repositoryInterfaces.add(pat.getAnnotatedType().getJavaClass());
 		}
 	}
@@ -77,14 +79,14 @@ public class RepositoryExtension implements Extension {
     <T> void processInjectionPoint(@Observes ProcessInjectionTarget<T> pit, BeanManager beanManager) {
 		for (InjectionPoint point : pit.getInjectionTarget().getInjectionPoints()) {
             if (repositoryInterfaces.contains(point.getType())) {
-                System.out.printf("... found InjectionPoint in Class: %s with name: %s for the repository with type: %s%n", point.getBean().getBeanClass().getName(), point.getMember().getName(), point.getType());
+                log.fine(String.format("... found InjectionPoint in Class: %s with name: %s for the repository with type: %s%n", point.getBean().getBeanClass().getName(), point.getMember().getName(), point.getType()));
                 String technology = "default";
                 if (point.getAnnotated().isAnnotationPresent(Technology.class)) {
                     technology = point.getAnnotated().getAnnotation(Technology.class).value();
                 }
                 RepositoryKey key = new RepositoryKey((Class<?>) point.getType(), technology);
                 if (!repositoryBeans.containsKey(key)) {
-                    System.out.printf("... create Bean for Repository: %s with technology: %s%n", point.getType(), technology);
+                    log.fine(String.format("... create Bean for Repository: %s with technology: %s%n", point.getType(), technology));
                     repositoryBeans.put(key, new RepositoryBean(beanManager, key));
                 }
             }
@@ -92,7 +94,7 @@ public class RepositoryExtension implements Extension {
 	}
 
 	void afterBeanDiscovery(@Observes AfterBeanDiscovery abd) {
-		System.out.println("finished the scanning process");
+        log.fine("finished the scanning process");
         for (RepositoryBean bean : repositoryBeans.values()) {
 			abd.addBean(bean);
 		}

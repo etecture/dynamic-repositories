@@ -108,7 +108,6 @@ public class RepositoryBean implements Bean<Object> {
 
 	@Override
 	public Object create(CreationalContext ctx) {
-        System.out.printf("create proxy for repository: %s with technology: %s%n", repositoryKey.getRepositoryInterface().getName(), repositoryKey.getTechnology());
         return Proxy.newProxyInstance(repositoryKey.getRepositoryInterface().getClassLoader(), new Class[]{repositoryKey.getRepositoryInterface()}, new RepositoryInvocationHandler(repositoryKey.getTechnology(), beanManager, ctx));
 	}
 
