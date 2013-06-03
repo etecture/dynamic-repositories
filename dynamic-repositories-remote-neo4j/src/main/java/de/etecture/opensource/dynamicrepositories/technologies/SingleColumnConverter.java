@@ -86,6 +86,10 @@ public class SingleColumnConverter<R> implements ResultConverter<R> {
             } else {
                 throw new IllegalArgumentException(String.format("cannot convert: %s to: %s", value, clazz.getSimpleName()));
             }
+        } else if (Boolean.class.isAssignableFrom(clazz) || clazz == Boolean.TYPE) {
+            return (T) (value == null ? Boolean.FALSE : (Boolean) value);
+        } else if (String.class.isAssignableFrom(clazz)) {
+            return (T) (value == null ? null : value.toString());
         } else if (clazz.isPrimitive()) {
             Number number = (Number) value;
             if (clazz == byte.class) {
