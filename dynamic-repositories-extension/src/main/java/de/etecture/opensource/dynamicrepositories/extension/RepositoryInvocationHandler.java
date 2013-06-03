@@ -290,7 +290,7 @@ public class RepositoryInvocationHandler implements InvocationHandler {
             }
         } catch (Exception exception) {
             for (int i = 0; i < method.getExceptionTypes().length; i++) {
-                if (exception.getClass().isAssignableFrom(method.getExceptionTypes()[i])) {
+                if (method.getExceptionTypes()[i].isAssignableFrom(exception.getClass())) {
                     throw exception;
                 }
             }
