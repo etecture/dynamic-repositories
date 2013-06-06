@@ -41,8 +41,11 @@ package de.etecture.opensource.dynamicrepositories.extension;
 
 import de.etecture.opensource.dynamicrepositories.api.Count;
 import de.etecture.opensource.dynamicrepositories.api.DeleteSupport;
+import de.etecture.opensource.dynamicrepositories.api.Generator;
 import de.etecture.opensource.dynamicrepositories.api.Offset;
+import de.etecture.opensource.dynamicrepositories.api.Param;
 import de.etecture.opensource.dynamicrepositories.api.ParamName;
+import de.etecture.opensource.dynamicrepositories.api.Params;
 import de.etecture.opensource.dynamicrepositories.api.Queries;
 import de.etecture.opensource.dynamicrepositories.api.Query;
 import de.etecture.opensource.dynamicrepositories.api.Repository;
@@ -64,6 +67,7 @@ import java.util.Set;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
+import org.apache.commons.beanutils.ConvertUtils;
 
 /**
  * this is an {@link InvocationHandler} for finder methods in an interface,
@@ -93,6 +97,14 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                     if (ParamName.class.isAssignableFrom(annotation.annotationType())) {
                         parameterMap.put(((ParamName) annotation).value(), values[i]);
                     }
+                }
+            }
+            if (method.isAnnotationPresent(Param.class)) {
+                Param param = method.getAnnotation(Param.class);
+                addParameter(param);
+            } else if (method.isAnnotationPresent(Params.class)) {
+                for (Param param : method.getAnnotation(Params.class).value()) {
+                    addParameter(param);
                 }
             }
             if (method.isAnnotationPresent(Query.class)) {
@@ -258,6 +270,23 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         @Override
         public ResultConverter<T> getConverter() {
             return converter;
+        }
+
+        private void addParameter(Param param) {
+            if (param.generator().getName().equals(Generator.class.getName())) {
+                final String value = param.value();
+                if ("$$$generated$$$".equals(value)) {
+                    throw new IllegalArgumentException(String.format("Either generator or value must be specified for parameter defintion '%s'!", param.name()));
+                }
+                parameterMap.put(param.name(), ConvertUtils.convert(value, param.type()));
+            } else {
+                try {
+                    final Generator generator = param.generator().newInstance();
+                    parameterMap.put(param.name(), ConvertUtils.convert(generator.generateValue(param), param.type()));
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    throw new IllegalArgumentException("The generator cannot be instantiated. ", ex);
+                }
+            }
         }
     }
     private final BeanManager beanManager;
