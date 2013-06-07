@@ -41,6 +41,7 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.jeelogging.bridges.sysout.SysoutLoggingBridge;
 import de.herschke.neo4j.uplink.ejb.Neo4jRestService;
 import java.io.File;
 import java.util.List;
@@ -70,7 +71,7 @@ public class SampleRepositoryIT {
     @Deployment(order = 2, name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war");
-        wa.addClasses(Actor.class, Movie.class, SampleRepository.class, Neo4jRestService.class, RemoteNeo4jQueryExecutor.class);
+        wa.addClasses(Actor.class, Movie.class, SampleRepository.class, Neo4jRestService.class, RemoteNeo4jQueryExecutor.class, SysoutLoggingBridge.class);
         wa.addAsWebInfResource("META-INF/beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsServiceProvider(Extension.class, RepositoryExtension.class);
