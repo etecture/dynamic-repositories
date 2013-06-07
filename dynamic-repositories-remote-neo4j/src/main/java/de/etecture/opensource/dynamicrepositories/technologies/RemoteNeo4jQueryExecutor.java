@@ -44,6 +44,8 @@ import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.jeelogging.api.Log;
+import static de.etecture.opensource.jeelogging.api.LogEvent.Severity.*;
 import de.herschke.neo4j.uplink.api.CypherResult;
 import de.herschke.neo4j.uplink.api.Neo4jUplink;
 import java.lang.reflect.ParameterizedType;
@@ -52,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
+import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 
 /**
  * this is an implementation of a {@link QueryExecutor} to use an remote Neo4j
@@ -63,11 +67,16 @@ import javax.ejb.Singleton;
 @Singleton
 public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
 
+    @Inject
+    @Default
+    Log log;
     @EJB
     Neo4jUplink neo4jServer;
 
     @Override
     protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws Exception {
+        log.log(FINER, "query is: %n%s%n", metadata.getQuery());
+        log.log(FINER, "parameters are: %n%s%n", metadata.getParameterMap());
         if (metadata.getConverter() == null && metadata.getQueryType().isInterface()) {
             List<T> resultList = neo4jServer.executeCypherQuery(metadata.getQueryType(), metadata.getQuery(), metadata.getParameterMap());
             if (!resultList.isEmpty()) {
@@ -77,6 +86,7 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
             }
         } else {
             CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+            log.log(FINEST, result.toString());
             if (!result.isEmpty()) {
                 // get the single result.
                 Map<String, Object> singleResult = result.getRowData(0);
@@ -93,11 +103,14 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws Exception {
+        log.log(FINER, "query is: %n%s%n", metadata.getQuery());
+        log.log(FINER, "parameters are: %n%s%n", metadata.getParameterMap());
         if (metadata.getConverter() == null && metadata.getQueryType().isInterface()) {
             Class<?> componentType = metadata.getQueryType().isArray() ? metadata.getQueryType().getComponentType() : getComponentType(metadata.getQueryGenericType());
             return (T) neo4jServer.executeCypherQuery(componentType, metadata.getQuery(), metadata.getParameterMap());
         } else {
             CypherResult result = neo4jServer.executeCypherQuery(metadata.getQuery(), metadata.getParameterMap());
+            log.log(FINEST, result.toString());
             if (metadata.getConverter() == null) {
                 return metadata.getQueryType().cast(result);
             } else {

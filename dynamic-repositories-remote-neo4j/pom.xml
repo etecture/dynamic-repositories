@@ -54,6 +54,19 @@
             <type>jar</type>
         </dependency>
         <dependency>
+            <groupId>de.etecture.opensource</groupId>
+            <artifactId>jee-logging-api</artifactId>
+            <version>[1.0.0,)</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>de.etecture.opensource</groupId>
+            <artifactId>jee-logging-sysout-bridge</artifactId>
+            <version>[1.0.0,)</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>6.0</version>
