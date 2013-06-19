@@ -275,7 +275,7 @@
                                     <goal>start-server</goal>
                                 </goals>
                                 <configuration>
-                                    <port>7474</port>
+                                    <port>17474</port>
                                     <bootstrapCypher><![CDATA[
                                        create (matrix1:Movie {id : '603', title : 'The Matrix', year : '1999-03-31'}),
                                         (matrix2:Movie {id : '604', title : 'The Matrix Reloaded', year : '2003-05-07'}),
