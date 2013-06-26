@@ -86,9 +86,12 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         private final String queryName;
         private final String query;
         private final ResultConverter<T> converter;
+        private final Class<?> repositoryClass;
 
-        public MethodQueryMetaData(String technology, Method method, Object[] values) throws Exception {
+        public MethodQueryMetaData(Class<?> repositoryClass, String technology,
+                Method method, Object[] values) throws Exception {
             kind = Kind.valueOf(method);
+            this.repositoryClass = repositoryClass;
             this.method = method;
             this.values = values;
             final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
@@ -152,6 +155,11 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                 queryName = method.getName();
                 converter = null;
             }
+        }
+
+        @Override
+        public Class<?> getRepositoryClass() {
+            return this.repositoryClass;
         }
 
         @Override
@@ -310,7 +318,9 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         Object result = null;
         try {
             if (Kind.valueOf(method) != null) {
-                result = getExecutorByTechnology(this.technology).execute(new MethodQueryMetaData<>(this.technology, method, args));
+                result = getExecutorByTechnology(this.technology).execute(
+                        new MethodQueryMetaData<>(method.getDeclaringClass(),
+                        this.technology, method, args));
             } else if (method.getDeclaringClass() == UpdateSupport.class
                     || method.getDeclaringClass() == DeleteSupport.class) {
                 result = method.invoke(getExecutorByTechnology(this.technology), args);

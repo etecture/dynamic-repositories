@@ -53,7 +53,10 @@ import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
 /**
@@ -82,6 +85,13 @@ public class SampleRepositoryIT {
         System.out.println(wa.toString(true));
         System.out.println("---------------------------------------------------------------------------");
         return wa;
+    }
+    @Rule
+    public TestName name = new TestName();
+
+    @Before
+    public void setUp() {
+        System.out.println(name.getMethodName());
     }
 
     @Test
@@ -124,5 +134,17 @@ public class SampleRepositoryIT {
         List<Movie> movies = repository.findMoviesWherePersonIsAnActor("Keanu Reeves");
         assertThat(movies).isNotNull().hasSize(3).onProperty("title").containsOnly("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
         assertThat(movies).onProperty("year").containsOnly("1999-03-31", "2003-05-07", "2003-10-27");
+    }
+
+    @Test
+    @OperateOnDeployment("test-candidate")
+    public void simpleObjectChainTest() throws Exception {
+        assertThat(repository).isNotNull();
+        Movie movie = repository.findMovieWithActors("The Matrix");
+        assertThat(movie).isNotNull();
+        assertThat(movie.getTitle()).isEqualTo("The Matrix");
+        assertThat(movie.getActors()).hasSize(3).onProperty("name")
+                .containsOnly("Keanu Reeves", "Laurence Fishburne",
+                "Carrie-Anne Moss");
     }
 }

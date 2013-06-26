@@ -39,6 +39,8 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
+import java.util.List;
+
 /**
  * represents a sample entity for test purposes.
  *
@@ -50,5 +52,5 @@ public interface Movie {
 
     String getYear();
 
-    Actor getActor(String role);
+    List<Actor> getActors();
 }

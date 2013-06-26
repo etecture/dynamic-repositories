@@ -103,4 +103,6 @@ public interface QueryMetaData<T> {
     Type getQueryGenericType();
 
     Annotation[] getAnnotations();
+
+    Class<?> getRepositoryClass();
 }

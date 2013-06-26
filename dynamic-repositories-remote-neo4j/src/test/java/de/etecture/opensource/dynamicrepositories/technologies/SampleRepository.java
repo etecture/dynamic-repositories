@@ -72,14 +72,9 @@ public interface SampleRepository {
     Actor findPersonWithMoviesByName(@ParamName("actorname") String name);
 
     @Retrieve
-    @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(m:Movie) \n"
-            + "WHERE n.name = {actorname} \n"
-            + "RETURN m.title as `title`, m.year as `year`")
     List<Movie> findMoviesWherePersonIsAnActor(@ParamName("actorname") String name);
 
     @Retrieve
-    @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(m:Movie) \n"
-            + "WHERE m.title = {movietitle} \n"
-            + "RETURN m.title as `title`, m.year as `year`, collect(n.name) AS `actors.name`, collect(r.role) AS `actors.role`")
+    @Query(name = "anotherQuery")
     Movie findMovieWithActors(@ParamName("movietitle") String title);
 }
