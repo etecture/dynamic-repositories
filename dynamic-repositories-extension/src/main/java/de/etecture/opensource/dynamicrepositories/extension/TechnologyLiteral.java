@@ -45,7 +45,8 @@ import javax.enterprise.util.AnnotationLiteral;
 // must be subclassed, due to select method
 
 @SuppressWarnings(value = "AnnotationAsSuperInterface") // must be subclassed, due to select method
-class TechnologyLiteral extends AnnotationLiteral<Technology> implements Technology {
+public class TechnologyLiteral extends AnnotationLiteral<Technology> implements
+        Technology {
     static final long serialVersionUID = 0;
     private final String technologyName;
 
