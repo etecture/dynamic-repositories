@@ -105,4 +105,6 @@ public interface QueryMetaData<T> {
     Annotation[] getAnnotations();
 
     Class<?> getRepositoryClass();
+
+    String getQueryTechnology();
 }

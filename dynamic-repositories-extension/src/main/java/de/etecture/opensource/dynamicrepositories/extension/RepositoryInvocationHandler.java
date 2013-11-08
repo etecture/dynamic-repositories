@@ -65,8 +65,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.UnsatisfiedResolutionException;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.util.AnnotationLiteral;
 import org.apache.commons.beanutils.ConvertUtils;
 
 /**
@@ -87,18 +90,23 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         private final String query;
         private final ResultConverter<T> converter;
         private final Class<?> repositoryClass;
+        private final String technology;
 
-        public MethodQueryMetaData(Class<?> repositoryClass, String technology,
+        private MethodQueryMetaData(Class<?> repositoryClass, String technology,
                 Method method, Object[] values) throws Exception {
-            kind = Kind.valueOf(method);
+            this.kind = Kind.valueOf(method);
+            this.technology = technology;
             this.repositoryClass = repositoryClass;
             this.method = method;
             this.values = values;
-            final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            final Annotation[][] parameterAnnotations = method
+                    .getParameterAnnotations();
             for (int i = 0; i < parameterAnnotations.length; i++) {
                 for (Annotation annotation : parameterAnnotations[i]) {
-                    if (ParamName.class.isAssignableFrom(annotation.annotationType())) {
-                        parameterMap.put(((ParamName) annotation).value(), values[i]);
+                    if (ParamName.class.isAssignableFrom(annotation
+                            .annotationType())) {
+                        parameterMap.put(((ParamName) annotation).value(),
+                                values[i]);
                     }
                 }
             }
@@ -112,8 +120,11 @@ public class RepositoryInvocationHandler implements InvocationHandler {
             }
             if (method.isAnnotationPresent(Query.class)) {
                 query = method.getAnnotation(Query.class).value();
-                queryName = method.getAnnotation(Query.class).name().equals("") ? method.getName() : method.getAnnotation(Query.class).name();
-                Class<? extends ResultConverter> converterClass = method.getAnnotation(Query.class).converter();
+                queryName =
+                        method.getAnnotation(Query.class).name().isEmpty() ? method
+                        .getName() : method.getAnnotation(Query.class).name();
+                Class<? extends ResultConverter> converterClass = method
+                        .getAnnotation(Query.class).converter();
                 if (converterClass.equals(ResultConverter.class)) {
                     converter = null;
                 } else {
@@ -123,8 +134,11 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                 for (Query queryA : method.getAnnotation(Queries.class).value()) {
                     if (queryA.technology().equalsIgnoreCase(technology)) {
                         query = queryA.value();
-                        queryName = queryA.name().equals("") ? method.getName() : queryA.name();
-                        Class<? extends ResultConverter> converterClass = queryA.converter();
+                        queryName =
+                                queryA.name().isEmpty() ? method.getName() : queryA
+                                .name();
+                        Class<? extends ResultConverter> converterClass = queryA
+                                .converter();
                         if (converterClass.equals(ResultConverter.class)) {
                             converter = null;
                         } else {
@@ -137,8 +151,11 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                 for (Query queryA : method.getAnnotation(Queries.class).value()) {
                     if (queryA.technology().equalsIgnoreCase("default")) {
                         query = queryA.value();
-                        queryName = queryA.name().equals("") ? method.getName() : queryA.name();
-                        Class<? extends ResultConverter> converterClass = queryA.converter();
+                        queryName =
+                                queryA.name().isEmpty() ? method.getName() : queryA
+                                .name();
+                        Class<? extends ResultConverter> converterClass = queryA
+                                .converter();
                         if (converterClass.equals(ResultConverter.class)) {
                             converter = null;
                         } else {
@@ -184,10 +201,12 @@ public class RepositoryInvocationHandler implements InvocationHandler {
 
         @Override
         public int getOffset() {
-            final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            final Annotation[][] parameterAnnotations = method
+                    .getParameterAnnotations();
             for (int i = 0; i < parameterAnnotations.length; i++) {
                 for (Annotation annotation : parameterAnnotations[i]) {
-                    if (Offset.class.isAssignableFrom(annotation.annotationType())) {
+                    if (Offset.class.isAssignableFrom(annotation
+                            .annotationType())) {
                         return (int) values[i];
                     }
                 }
@@ -200,15 +219,18 @@ public class RepositoryInvocationHandler implements InvocationHandler {
             if (method.isAnnotationPresent(Count.class)) {
                 return method.getAnnotation(Count.class).value();
             }
-            final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            final Annotation[][] parameterAnnotations = method
+                    .getParameterAnnotations();
             for (int i = 0; i < parameterAnnotations.length; i++) {
                 for (Annotation annotation : parameterAnnotations[i]) {
-                    if (Count.class.isAssignableFrom(annotation.annotationType())) {
+                    if (Count.class
+                            .isAssignableFrom(annotation.annotationType())) {
                         return (int) values[i];
                     }
                 }
             }
-            if (Collection.class.isAssignableFrom(getQueryType()) || getQueryType().isArray()) {
+            if (Collection.class.isAssignableFrom(getQueryType())
+                    || getQueryType().isArray()) {
                 return -1;
             }
             return 1;
@@ -241,25 +263,32 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         }
 
         @Override
-        public Exception createException(Class<? extends Annotation> qualifier, String message, Exception cause) {
+        public Exception createException(Class<? extends Annotation> qualifier,
+                String message, Exception cause) {
             for (Class<?> exceptionType : method.getExceptionTypes()) {
                 if (exceptionType.isAnnotationPresent(qualifier)) {
                     try {
                         try {
                             // find Constructor with String and Throwable parameter
-                            return (Exception) exceptionType.getConstructor(String.class, Throwable.class).newInstance(message, cause);
+                            return (Exception) exceptionType.getConstructor(
+                                    String.class, Throwable.class).newInstance(
+                                    message, cause);
                         } catch (NoSuchMethodException ex) {
                             try {
                                 // find Constructor with Throwable parameter
-                                return (Exception) exceptionType.getConstructor(Throwable.class).newInstance(cause);
+                                return (Exception) exceptionType.getConstructor(
+                                        Throwable.class).newInstance(cause);
                             } catch (NoSuchMethodException ex2) {
                                 Exception exception;
                                 try {
                                     // find Constructor with String parameter
-                                    exception = (Exception) exceptionType.getConstructor(String.class).newInstance(message);
+                                    exception = (Exception) exceptionType
+                                            .getConstructor(String.class)
+                                            .newInstance(message);
                                 } catch (NoSuchMethodException ex3) {
                                     // find no-args Constructor
-                                    exception = (Exception) exceptionType.newInstance();
+                                    exception = (Exception) exceptionType
+                                            .newInstance();
                                 }
                                 if (cause != null) {
                                     exception.initCause(cause);
@@ -267,8 +296,11 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                                 return exception;
                             }
                         }
-                    } catch (SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                        throw new IllegalStateException("cannot create Exception: ", ex);
+                    } catch (SecurityException | InstantiationException |
+                            IllegalAccessException | IllegalArgumentException |
+                            InvocationTargetException ex) {
+                        throw new IllegalStateException(
+                                "cannot create Exception: ", ex);
                     }
                 }
             }
@@ -284,37 +316,76 @@ public class RepositoryInvocationHandler implements InvocationHandler {
             if (param.generator().getName().equals(Generator.class.getName())) {
                 final String value = param.value();
                 if ("$$$generated$$$".equals(value)) {
-                    throw new IllegalArgumentException(String.format("Either generator or value must be specified for parameter defintion '%s'!", param.name()));
+                    throw new IllegalArgumentException(String.format(
+                            "Either generator or value must be specified for parameter defintion '%s'!",
+                            param.name()));
                 }
-                parameterMap.put(param.name(), ConvertUtils.convert(value, param.type()));
+                parameterMap.put(param.name(), ConvertUtils.convert(value, param
+                        .type()));
             } else {
                 try {
                     final Generator generator = param.generator().newInstance();
-                    parameterMap.put(param.name(), ConvertUtils.convert(generator.generateValue(param), param.type()));
+                    parameterMap.put(param.name(), ConvertUtils.convert(
+                            generator.generateValue(param), param.type()));
                 } catch (InstantiationException | IllegalAccessException ex) {
-                    throw new IllegalArgumentException("The generator cannot be instantiated. ", ex);
+                    throw new IllegalArgumentException(
+                            "The generator cannot be instantiated. ", ex);
                 }
             }
+        }
+
+        @Override
+        public String getQueryTechnology() {
+            return technology;
         }
     }
     private final BeanManager beanManager;
     private final String technology;
     private final CreationalContext ctx;
 
-    public RepositoryInvocationHandler(String technology, BeanManager beanManager, CreationalContext ctx) {
+    public RepositoryInvocationHandler(String technology,
+            BeanManager beanManager, CreationalContext ctx) {
         this.beanManager = beanManager;
         this.ctx = ctx;
         this.technology = technology;
     }
 
     private QueryExecutor getExecutorByTechnology(String technology) {
-        Set<Bean<?>> queryExecutors = beanManager.getBeans(QueryExecutor.class, new TechnologyLiteral(technology));
-        QueryExecutor qe = (QueryExecutor) this.beanManager.getReference(beanManager.resolve(queryExecutors), QueryExecutor.class, ctx);
+        Bean<?> resolvedBean;
+        if ("default".equalsIgnoreCase(technology)) {
+            Set<Bean<?>> queryExecutors = beanManager.getBeans(
+                    QueryExecutor.class, new TechnologyLiteral(technology));
+            if (queryExecutors.isEmpty()) {
+                queryExecutors = beanManager.getBeans(QueryExecutor.class,
+                        new AnnotationLiteral<Any>() {
+                    private static final long serialVersionUID = 1L;
+                });
+                if (queryExecutors.isEmpty()) {
+                    throw new UnsatisfiedResolutionException(
+                            "no queryexecutor defined.");
+                } else {
+                    resolvedBean = queryExecutors.iterator().next();
+                }
+            } else if (queryExecutors.size() > 1) {
+                throw new UnsatisfiedResolutionException(
+                        "more than one technologies found.");
+            } else {
+                resolvedBean = queryExecutors.iterator().next();
+            }
+        } else {
+            Set<Bean<?>> queryExecutors = beanManager.getBeans(
+                    QueryExecutor.class, new TechnologyLiteral(technology));
+            resolvedBean =
+                    beanManager.resolve(queryExecutors);
+        }
+        QueryExecutor qe = (QueryExecutor) this.beanManager.getReference(
+                resolvedBean, QueryExecutor.class, ctx);
         return qe;
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) throws
+            Throwable {
         Object result = null;
         try {
             if (Kind.valueOf(method) != null) {
@@ -323,17 +394,24 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                         this.technology, method, args));
             } else if (method.getDeclaringClass() == UpdateSupport.class
                     || method.getDeclaringClass() == DeleteSupport.class) {
-                result = method.invoke(getExecutorByTechnology(this.technology), args);
+                result = method.invoke(getExecutorByTechnology(this.technology),
+                        args);
             } else {
-                throw new UnsupportedOperationException("no implementation for method: " + method.getName());
+                throw new UnsupportedOperationException(
+                        "no implementation for method: " + method.getName());
             }
         } catch (Exception exception) {
             for (int i = 0; i < method.getExceptionTypes().length; i++) {
-                if (method.getExceptionTypes()[i].isAssignableFrom(exception.getClass())) {
+                if (method.getExceptionTypes()[i].isAssignableFrom(exception
+                        .getClass())) {
                     throw exception;
                 }
             }
-            throw new UnsupportedOperationException(String.format("The repository method: %s#%s does not declare to throw: %s - but this exception is raised in execution of this method!%nMessage of raised Exception is: %s", method.getDeclaringClass().getSimpleName(), method.getName(), exception.getClass().getSimpleName(), exception.getMessage()), exception);
+            throw new UnsupportedOperationException(String.format(
+                    "The repository method: %s#%s does not declare to throw: %s - but this exception is raised in execution of this method!%nMessage of raised Exception is: %s",
+                    method.getDeclaringClass().getSimpleName(), method.getName(),
+                    exception.getClass().getSimpleName(), exception.getMessage()),
+                    exception);
         }
         return result;
     }
