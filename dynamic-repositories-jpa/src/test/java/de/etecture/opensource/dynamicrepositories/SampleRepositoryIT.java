@@ -46,11 +46,11 @@ import de.etecture.opensource.dynamicrepositories.api.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
 import de.etecture.opensource.dynamicrepositories.api.Retrieve;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryBean;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryInvocationHandler;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.technologies.DummyQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.JPAQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
@@ -162,7 +162,7 @@ public class SampleRepositoryIT {
         Sample sample = repository.findById(1l);
         sample.setName("ingo");
         try {
-            sample = repository.update(sample);
+            sample = repository.update("default", sample);
             assertThat(sample.getName()).isEqualTo("ingo");
             assertThat(repository.getSampleName(1l)).isEqualTo("ingo");
         } catch (EntityNotFoundException ex) {
@@ -178,7 +178,7 @@ public class SampleRepositoryIT {
         assertThat(repository.getSampleCount()).isEqualTo(15l);
         Sample sample = repository.findById(1l);
         try {
-            repository.delete(sample);
+            repository.delete("default", sample);
             assertThat(repository.getSampleCount()).isEqualTo(14l);
         } catch (EntityNotFoundException ex) {
             fail(ex.getMessage());

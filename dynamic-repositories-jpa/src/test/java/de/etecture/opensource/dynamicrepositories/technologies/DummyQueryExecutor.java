@@ -40,9 +40,9 @@
 package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import javax.ejb.Singleton;
 
 /**
@@ -55,12 +55,14 @@ import javax.ejb.Singleton;
 public class DummyQueryExecutor implements QueryExecutor {
 
     @Override
-    public <T> T update(T instance) throws EntityNotFoundException {
+    public <T> T update(String connection, T instance) throws
+            EntityNotFoundException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void delete(Object instance) throws EntityNotFoundException {
+    public void delete(String connection, Object instance) throws
+            EntityNotFoundException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

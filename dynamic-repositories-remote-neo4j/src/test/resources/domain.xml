@@ -1,18 +1,43 @@
 <domain log-root="${com.sun.aas.instanceRoot}/logs" application-root="${com.sun.aas.instanceRoot}/applications" version="10.0">
-    <system-applications/>
-    <applications/>
+    <security-configurations>
+        <authentication-service default="true" name="adminAuth" use-password-credential="true">
+            <security-provider name="spcrealm" type="LoginModule" provider-name="adminSpc">
+                <login-module-config name="adminSpecialLM" control-flag="sufficient" module-class="com.sun.enterprise.admin.util.AdminLoginModule">
+                    <property name="config" value="server-config"></property>
+                    <property name="auth-realm" value="admin-realm"></property>
+                </login-module-config>
+            </security-provider>
+            <security-provider name="filerealm" type="LoginModule" provider-name="adminFile">
+                <login-module-config name="adminFileLM" control-flag="sufficient" module-class="com.sun.enterprise.security.auth.login.FileLoginModule">
+                    <property name="config" value="server-config"></property>
+                    <property name="auth-realm" value="admin-realm"></property>
+                </login-module-config>
+            </security-provider>
+        </authentication-service>
+        <authorization-service default="true" name="authorizationService">
+            <security-provider name="simpleAuthorization" type="Simple" provider-name="simpleAuthorizationProvider">
+                <authorization-provider-config support-policy-deploy="false" name="simpleAuthorizationProviderConfig"></authorization-provider-config>
+            </security-provider>
+        </authorization-service>
+    </security-configurations>
+    <system-applications />
     <resources>
-        <jdbc-resource pool-name="__TimerPool" jndi-name="jdbc/__TimerPool" object-type="system-admin"/>
+        <jdbc-resource pool-name="__TimerPool" jndi-name="jdbc/__TimerPool" object-type="system-admin" />
+        <jdbc-resource pool-name="DerbyPool" jndi-name="jdbc/__default" object-type="system-all" />
         <jdbc-connection-pool name="__TimerPool" datasource-classname="org.apache.derby.jdbc.EmbeddedXADataSource" res-type="javax.sql.XADataSource">
-            <property value="${com.sun.aas.instanceRoot}/lib/databases/ejbtimer" name="databaseName"/>
-            <property value=";create=true" name="connectionAttributes"/>
+            <property value="${com.sun.aas.instanceRoot}/lib/databases/ejbtimer" name="databaseName" />
+            <property value=";create=true" name="connectionAttributes" />
         </jdbc-connection-pool>
     </resources>
     <servers>
         <server name="server" config-ref="server-config">
-            <resource-ref ref="jdbc/__TimerPool"/>
+            <resource-ref ref="jdbc/__TimerPool" />
+            <resource-ref ref="jdbc/__default" />
         </server>
     </servers>
+    <nodes>
+        <node name="localhost-domain1" type="CONFIG" node-host="localhost" install-dir="${com.sun.aas.productRoot}"/>
+    </nodes>
     <configs>
         <config name="server-config">
             <http-service>
@@ -71,8 +96,8 @@
                     <property name="repository" value="${com.sun.aas.instanceRoot}/generated/policy" />
                 </jacc-provider>
                 <jacc-provider policy-provider="com.sun.enterprise.security.jacc.provider.SimplePolicyProvider" name="simple" policy-configuration-factory-provider="com.sun.enterprise.security.jacc.provider.SimplePolicyConfigurationFactory" />
-                <audit-module classname="com.sun.enterprise.security.Audit" name="default">
-                    <property name="auditOn" value="false" />
+                <audit-module classname="com.sun.enterprise.security.ee.Audit" name="default">
+                    <property value="false" name="auditOn" />
                 </audit-module>
                 <message-security-config auth-layer="SOAP">
                     <provider-config provider-type="client" provider-id="XWS_ClientProvider" class-name="com.sun.xml.wss.provider.ClientSecurityAuthModule">
@@ -111,7 +136,7 @@
             </security-service>
             <transaction-service tx-log-dir="${com.sun.aas.instanceRoot}/logs" automatic-recovery="true" />
             <diagnostic-service />
-            <java-config debug-options="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${JAVA_DEBUGGER_PORT}" system-classpath="" classpath-suffix="">
+            <java-config debug-options="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JAVA_DEBUGGER_PORT}" system-classpath="" classpath-suffix="">
                 <jvm-options>-XX:MaxPermSize=192m</jvm-options>
                 <jvm-options>-XX:PermSize=64m</jvm-options>
                 <jvm-options>-server</jvm-options>
@@ -129,6 +154,9 @@
                 <jvm-options>-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</jvm-options>
                 <jvm-options>-XX:NewRatio=2</jvm-options>
                 <jvm-options>-Xmx512m</jvm-options>
+                <!-- Configure post startup bundle list here. This is a comma separated list of bundle sybolic names.
+                The remote shell bundle has been disabled for cluster and remote instances. -->
+                <jvm-options>-Dorg.glassfish.additionalOSGiBundlesToStart=org.apache.felix.shell,org.apache.felix.gogo.runtime,org.apache.felix.gogo.shell,org.apache.felix.gogo.command,org.apache.felix.fileinstall</jvm-options>
                 <!-- Port on which remote shell listens for connections.-->
                 <jvm-options>-Dosgi.shell.telnet.port=${OSGI_SHELL_TELNET_PORT}</jvm-options>
                 <!-- How many concurrent users can connect to this remote shell -->
@@ -171,7 +199,7 @@
                         <http default-virtual-server="server">
                             <file-cache />
                         </http>
-                        <ssl classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" cert-nickname="s1as" />
+                        <ssl classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" ssl3-enabled="false" cert-nickname="s1as" />
                     </protocol>
                     <protocol name="admin-listener">
                         <http default-virtual-server="__asadmin" max-connections="250">
@@ -182,15 +210,15 @@
                         <http default-virtual-server="__asadmin" encoded-slash-enabled="true">
                             <file-cache></file-cache>
                         </http>
-                        <ssl client-auth="want" classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" cert-nickname="glassfish-instance"></ssl>
+                        <ssl client-auth="want" ssl3-enabled="false" classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" cert-nickname="glassfish-instance" renegotiate-on-client-auth-want="false"></ssl>
                     </protocol>
                     <protocol name="admin-http-redirect">
                         <http-redirect secure="true"></http-redirect>
                     </protocol>
                     <protocol name="pu-protocol">
                         <port-unification>
-                            <protocol-finder protocol="sec-admin-listener" name="http-finder" classname="com.sun.grizzly.config.HttpProtocolFinder"></protocol-finder>
-                            <protocol-finder protocol="admin-http-redirect" name="admin-http-redirect" classname="com.sun.grizzly.config.HttpProtocolFinder"></protocol-finder>
+                            <protocol-finder protocol="sec-admin-listener" name="http-finder" classname="org.glassfish.grizzly.config.portunif.HttpProtocolFinder"></protocol-finder>
+                            <protocol-finder protocol="admin-http-redirect" name="admin-http-redirect" classname="org.glassfish.grizzly.config.portunif.HttpProtocolFinder"></protocol-finder>
                         </port-unification>
                     </protocol>
                 </protocols>
@@ -209,17 +237,17 @@
             </thread-pools>
             <group-management-service/>
             <management-rules />
-         <system-property name="ASADMIN_LISTENER_PORT" value="54848"/>
-         <system-property name="HTTP_LISTENER_PORT" value="58080"/>
-         <system-property name="HTTP_SSL_LISTENER_PORT" value="58181"/>
-         <system-property name="JMS_PROVIDER_PORT" value="57676"/>
-         <system-property name="IIOP_LISTENER_PORT" value="53700"/>
-         <system-property name="IIOP_SSL_LISTENER_PORT" value="53820"/>
-         <system-property name="IIOP_SSL_MUTUALAUTH_PORT" value="53920"/>
-         <system-property name="JMX_SYSTEM_CONNECTOR_PORT" value="58686"/>
-         <system-property name="OSGI_SHELL_TELNET_PORT" value="56666"/>
-         <system-property name="JAVA_DEBUGGER_PORT" value="59009"/>
-          </config>
+            <system-property name="ASADMIN_LISTENER_PORT" value="54848"/>
+            <system-property name="HTTP_LISTENER_PORT" value="58080"/>
+            <system-property name="HTTP_SSL_LISTENER_PORT" value="58181"/>
+            <system-property name="JMS_PROVIDER_PORT" value="57676"/>
+            <system-property name="IIOP_LISTENER_PORT" value="53700"/>
+            <system-property name="IIOP_SSL_LISTENER_PORT" value="53820"/>
+            <system-property name="IIOP_SSL_MUTUALAUTH_PORT" value="53920"/>
+            <system-property name="JMX_SYSTEM_CONNECTOR_PORT" value="58686"/>
+            <system-property name="OSGI_SHELL_TELNET_PORT" value="56666"/>
+            <system-property name="JAVA_DEBUGGER_PORT" value="59009"/>
+        </config>
     </configs>
     <property name="administrative.domain.name" value="domain1"/>
 </domain>

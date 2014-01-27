@@ -41,6 +41,7 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
+import de.etecture.opensource.dynamicrepositories.spi.ConnectionResolver;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
@@ -53,10 +54,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import javax.ejb.EJB;
-import javax.ejb.Singleton;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * this is an implementation of a {@link QueryExecutor} to use an remote Neo4j
@@ -71,20 +71,25 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     @Inject
     @Default
     Log log;
-    @EJB
-    Neo4jUplink neo4jServer;
+    @Inject
+    @Technology("Neo4j")
+    ConnectionResolver<Neo4jUplink> connectionResolver;
 
     @Override
     protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws
             Exception {
         String query = buildQuery(metadata);
+        log.log(FINER, "connection is: %s%n", metadata.getConnection());
         log.log(FINER, "query is: %n%s%n", query);
         log.log(FINER, "parameters are: %n%s%n", metadata.getParameterMap());
+        Neo4jUplink neo4jServer = connectionResolver.getConnection(metadata
+                .getConnection());
         if (metadata.getConverter() == null && metadata.getQueryType()
                 .isInterface()) {
             List<T> resultList = neo4jServer.executeCypherQuery(metadata
                     .getQueryType(), query, metadata
                     .getParameterMap());
+            log.log(FINEST, resultList.toString());
             if (!resultList.isEmpty()) {
                 return resultList.get(0);
             } else {
@@ -116,6 +121,8 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
         String query = buildQuery(metadata);
         log.log(FINER, "query is: %n%s%n", query);
         log.log(FINER, "parameters are: %n%s%n", metadata.getParameterMap());
+        Neo4jUplink neo4jServer = connectionResolver.getConnection(metadata
+                .getConnection());
         if (metadata.getConverter() == null && metadata.getQueryType()
                 .isInterface()) {
             Class<?> componentType =
@@ -168,12 +175,14 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     }
 
     @Override
-    public void delete(Object instance) throws EntityNotFoundException {
+    public void delete(String connection, Object instance) throws
+            EntityNotFoundException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public <T> T update(T instance) throws EntityNotFoundException {
+    public <T> T update(String connection, T instance) throws
+            EntityNotFoundException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

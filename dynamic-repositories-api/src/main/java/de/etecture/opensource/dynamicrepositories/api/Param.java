@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
  *
  * @author rhk
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD,
+    ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Param {
 
@@ -40,5 +41,5 @@ public @interface Param {
      *
      * @return
      */
-    Class<? extends Generator> generator() default Generator.class;
+    Class<? extends Generator> generator() default DefaultGenerator.class;
 }

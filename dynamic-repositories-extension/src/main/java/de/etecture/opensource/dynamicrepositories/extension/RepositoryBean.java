@@ -39,6 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.extension;
 
+import de.etecture.opensource.dynamicrepositories.spi.QueryExecutorResolver;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -58,78 +59,84 @@ import javax.enterprise.util.AnnotationLiteral;
  * @author rhk
  */
 public class RepositoryBean implements Bean<Object> {
-    private final BeanManager beanManager;
 
+    private final BeanManager beanManager;
     private final RepositoryKey repositoryKey;
 
     public RepositoryBean(BeanManager beanManager, RepositoryKey repositoryKey) {
-		this.beanManager = beanManager;
+        this.beanManager = beanManager;
         this.repositoryKey = repositoryKey;
-	}
+    }
 
     @Override
-	public Set<Annotation> getQualifiers() {
+    public Set<Annotation> getQualifiers() {
         Set<Annotation> qualifiers = new HashSet<>();
         if (repositoryKey.getTechnology().equalsIgnoreCase("default")) {
             qualifiers.add(new AnnotationLiteral<Default>() {
             });
         }
         qualifiers.add(new TechnologyLiteral(repositoryKey.getTechnology()));
-		return qualifiers;
-	}
+        return qualifiers;
+    }
 
-	@Override
-	public Class<? extends Annotation> getScope() {
-		return ApplicationScoped.class;
-	}
+    @Override
+    public Class<? extends Annotation> getScope() {
+        return ApplicationScoped.class;
+    }
 
-	@Override
-	public Set<Class<? extends Annotation>> getStereotypes() {
-		return Collections.emptySet();
-	}
+    @Override
+    public Set<Class<? extends Annotation>> getStereotypes() {
+        return Collections.emptySet();
+    }
 
-	@Override
-	public Set<Type> getTypes() {
-		Set<Type> types = new HashSet<>();
+    @Override
+    public Set<Type> getTypes() {
+        Set<Type> types = new HashSet<>();
         types.add(repositoryKey.getRepositoryInterface());
-		types.add(Object.class);
-		return types;
-	}
+        types.add(Object.class);
+        return types;
+    }
 
-	@Override
-	public boolean isAlternative() {
+    @Override
+    public boolean isAlternative() {
         return false;
-	}
+    }
 
-	@Override
-	public boolean isNullable() {
-		return false;
-	}
+    @Override
+    public boolean isNullable() {
+        return false;
+    }
 
-	@Override
-	public Object create(CreationalContext ctx) {
-        return Proxy.newProxyInstance(repositoryKey.getRepositoryInterface().getClassLoader(), new Class[]{repositoryKey.getRepositoryInterface()}, new RepositoryInvocationHandler(repositoryKey.getTechnology(), beanManager, ctx));
-	}
+    @Override
+    public Object create(CreationalContext ctx) {
+        QueryExecutorResolver resolver =
+                (QueryExecutorResolver) beanManager.resolve(
+                beanManager.getBeans(QueryExecutorResolver.class)).create(
+                ctx);
+        return Proxy.newProxyInstance(repositoryKey.getRepositoryInterface()
+                .getClassLoader(), new Class[]{repositoryKey
+            .getRepositoryInterface()}, new RepositoryInvocationHandler(
+                repositoryKey.getTechnology(), resolver));
+    }
 
-	@Override
-	public void destroy(Object instance,
-			CreationalContext ctx) {
-		ctx.release();
-	}
+    @Override
+    public void destroy(Object instance,
+            CreationalContext ctx) {
+        ctx.release();
+    }
 
-	@Override
-	public String getName() {
+    @Override
+    public String getName() {
         return repositoryKey.toString();
-	}
+    }
 
-	@Override
-	public Class<?> getBeanClass() {
+    @Override
+    public Class<?> getBeanClass() {
         return repositoryKey.getRepositoryInterface();
-	}
+    }
 
-	@Override
-	public Set<InjectionPoint> getInjectionPoints() {
-		return Collections.emptySet();
-	}
-
- }
+    @Override
+    public Set<InjectionPoint> getInjectionPoints() {
+        return Collections.emptySet();
+    }
+}

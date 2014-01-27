@@ -47,5 +47,5 @@ package de.etecture.opensource.dynamicrepositories.api;
  */
 public interface UpdateSupport {
 
-    <T> T update(T instance) throws EntityNotFoundException;
+    <T> T update(String connection, T instance) throws EntityNotFoundException;
 }

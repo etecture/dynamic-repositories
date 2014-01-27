@@ -65,6 +65,8 @@ public class SingleColumnConverter<R> implements ResultConverter<R> {
 
     private <T> T convert(Class<T> clazz, Map<String, Object> toConvert) {
         final Object value = toConvert.values().iterator().next();
+        System.out.println("convert result-value: " + value + " to class: "
+                + clazz.getSimpleName());
         if (Number.class.isAssignableFrom(clazz) && value instanceof Number) {
             Number number = (Number) value;
             if (BigDecimal.class.isAssignableFrom(clazz)) {

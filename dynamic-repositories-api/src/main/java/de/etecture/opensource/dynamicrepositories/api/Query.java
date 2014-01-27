@@ -74,4 +74,11 @@ public @interface Query {
      * this query is executed.
      */
     Class<? extends ResultConverter> converter() default ResultConverter.class;
+
+    /**
+     * specifies the connection.
+     *
+     * @return
+     */
+    String connection() default "default";
 }

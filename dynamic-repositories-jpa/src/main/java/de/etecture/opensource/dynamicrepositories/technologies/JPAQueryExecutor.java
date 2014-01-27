@@ -41,18 +41,19 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
+import de.etecture.opensource.dynamicrepositories.spi.ConnectionResolver;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import javax.ejb.Singleton;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 
@@ -66,28 +67,32 @@ import javax.persistence.TypedQuery;
 @Singleton
 public class JPAQueryExecutor extends AbstractQueryExecutor {
 
-    @PersistenceContext(name = "persistence/DynamicRepositoryDB")
-    EntityManager em;
+    @Inject
+    @Technology("JPA")
+    ConnectionResolver<EntityManager> resolver;
 
     @Override
-    public <T> T update(T instance) throws EntityNotFoundException {
+    public <T> T update(String connection, T instance) throws
+            EntityNotFoundException {
         try {
-            return em.merge(instance);
+            return resolver.getConnection(connection).merge(instance);
         } catch (javax.persistence.EntityNotFoundException enfe) {
             throw new EntityNotFoundException(enfe, instance.getClass(), null);
         }
     }
 
     @Override
-    public void delete(Object instance) throws EntityNotFoundException {
+    public void delete(String connection, Object instance) throws
+            EntityNotFoundException {
         try {
-            em.remove(instance);
+            resolver.getConnection(connection).remove(instance);
         } catch (javax.persistence.EntityNotFoundException enfe) {
             throw new EntityNotFoundException(enfe, instance.getClass(), null);
         }
     }
 
     private <T> TypedQuery<T> createQuery(QueryMetaData<T> metadata) {
+        EntityManager em = resolver.getConnection(metadata.getConnection());
         TypedQuery<T> jpaQuery;
         if (metadata.getQuery() == null || metadata.getQuery().trim().length() == 0) {
             // look if there is a NamedQuery with query as name
@@ -110,6 +115,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws EntityNotFoundException {
+        EntityManager em = resolver.getConnection(metadata.getConnection());
         List<T> resultList = createQuery(metadata).getResultList();
         if (!resultList.isEmpty()) {
             // get the single result.
@@ -126,6 +132,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) {
+        EntityManager em = resolver.getConnection(metadata.getConnection());
         List<T> resultList = createQuery(metadata).getResultList();
         if (metadata.getConverter() == null) {
             return metadata.getQueryType().cast(resultList);
@@ -136,6 +143,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeUpdateQuery(QueryMetaData<T> metadata) throws Exception {
+        EntityManager em = resolver.getConnection(metadata.getConnection());
         return metadata.getQueryType().cast(createQuery(metadata).executeUpdate());
     }
 
@@ -156,6 +164,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
 
     @Override
     protected <T> T executeCreateQuery(QueryMetaData<T> metadata) throws EntityAlreadyExistsException {
+        EntityManager em = resolver.getConnection(metadata.getConnection());
         try {
             // create a new instance
             T t = metadata.getQueryType().newInstance();

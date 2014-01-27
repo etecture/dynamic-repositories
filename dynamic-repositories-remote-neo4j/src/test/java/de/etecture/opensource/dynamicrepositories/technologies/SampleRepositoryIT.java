@@ -39,10 +39,9 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
-import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.jeelogging.bridges.sysout.SysoutLoggingBridge;
-import de.herschke.neo4j.uplink.ejb.Neo4jRestService;
 import java.io.File;
 import java.util.List;
 import javax.enterprise.inject.spi.Extension;
@@ -52,6 +51,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OperateOnDeployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Before;
 import org.junit.Rule;
@@ -71,19 +71,25 @@ public class SampleRepositoryIT {
     @Technology("Neo4j")
     SampleRepository repository;
 
-    @Deployment(order = 2, name = "test-candidate")
+    @Deployment(order = 2,
+                name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war");
-        wa.addClasses(Actor.class, Movie.class, SampleRepository.class, Neo4jRestService.class, RemoteNeo4jQueryExecutor.class, SysoutLoggingBridge.class);
-        wa.addAsWebInfResource("META-INF/beans.xml");
+        wa.addClasses(Actor.class, Movie.class, SampleRepository.class,
+                SampleConnectionResolver.class,
+                RemoteNeo4jQueryExecutor.class,
+                SysoutLoggingBridge.class);
+        wa.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsServiceProvider(Extension.class, RepositoryExtension.class);
         for (File libFile : new File("target/libs").listFiles()) {
             wa.addAsLibrary(libFile, libFile.getName());
         }
-        System.out.println("------------------------------- sample.war --------------------------------");
+        System.out.println(
+                "------------------------------- sample.war --------------------------------");
         System.out.println(wa.toString(true));
-        System.out.println("---------------------------------------------------------------------------");
+        System.out.println(
+                "---------------------------------------------------------------------------");
         return wa;
     }
     @Rule
@@ -107,7 +113,8 @@ public class SampleRepositoryIT {
     @OperateOnDeployment("test-candidate")
     public void nestedObjectTest() throws Exception {
         assertThat(repository).isNotNull();
-        Actor actor = repository.findPersonWithInitialMovieByName("Keanu Reeves", "The Matrix");
+        Actor actor = repository
+                .findPersonWithInitialMovieByName("Keanu Reeves", "The Matrix");
         assertThat(actor).isNotNull();
         assertThat(actor.getName()).isNotNull().isEqualTo("Keanu Reeves");
         assertThat(actor.getInitialMovie()).isNotNull();
@@ -122,8 +129,11 @@ public class SampleRepositoryIT {
         Actor actor = repository.findPersonWithMoviesByName("Keanu Reeves");
         assertThat(actor).isNotNull();
         assertThat(actor.getName()).isNotNull().isEqualTo("Keanu Reeves");
-        assertThat(actor.getMovies()).isNotNull().hasSize(3).onProperty("title").containsOnly("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
-        assertThat(actor.getMovies()).onProperty("year").containsOnly("1999-03-31", "2003-05-07", "2003-10-27");
+        assertThat(actor.getMovies()).isNotNull().hasSize(3).onProperty("title")
+                .containsOnly("The Matrix", "The Matrix Reloaded",
+                "The Matrix Revolutions");
+        assertThat(actor.getMovies()).onProperty("year").containsOnly(
+                "1999-03-31", "2003-05-07", "2003-10-27");
         assertThat(actor.getRoles()).isNotNull().hasSize(1).containsOnly("Neo");
     }
 
@@ -131,9 +141,13 @@ public class SampleRepositoryIT {
     @OperateOnDeployment("test-candidate")
     public void simpleListTest() throws Exception {
         assertThat(repository).isNotNull();
-        List<Movie> movies = repository.findMoviesWherePersonIsAnActor("Keanu Reeves");
-        assertThat(movies).isNotNull().hasSize(3).onProperty("title").containsOnly("The Matrix", "The Matrix Reloaded", "The Matrix Revolutions");
-        assertThat(movies).onProperty("year").containsOnly("1999-03-31", "2003-05-07", "2003-10-27");
+        List<Movie> movies = repository.findMoviesWherePersonIsAnActor(
+                "Keanu Reeves");
+        assertThat(movies).isNotNull().hasSize(3).onProperty("title")
+                .containsOnly("The Matrix", "The Matrix Reloaded",
+                "The Matrix Revolutions");
+        assertThat(movies).onProperty("year").containsOnly("1999-03-31",
+                "2003-05-07", "2003-10-27");
     }
 
     @Test

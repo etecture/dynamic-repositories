@@ -52,6 +52,7 @@ import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
 import de.etecture.opensource.dynamicrepositories.api.UpdateSupport;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.spi.QueryExecutorResolver;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData.Kind;
 import java.lang.annotation.Annotation;
@@ -64,13 +65,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.UnsatisfiedResolutionException;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.util.AnnotationLiteral;
-import org.apache.commons.beanutils.ConvertUtils;
 
 /**
  * this is an {@link InvocationHandler} for finder methods in an interface,
@@ -91,6 +85,7 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         private final ResultConverter<T> converter;
         private final Class<?> repositoryClass;
         private final String technology;
+        private final String connection;
 
         private MethodQueryMetaData(Class<?> repositoryClass, String technology,
                 Method method, Object[] values) throws Exception {
@@ -130,6 +125,7 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                 } else {
                     converter = converterClass.newInstance();
                 }
+                connection = method.getAnnotation(Query.class).connection();
             } else if (method.isAnnotationPresent(Queries.class)) {
                 for (Query queryA : method.getAnnotation(Queries.class).value()) {
                     if (queryA.technology().equalsIgnoreCase(technology)) {
@@ -144,6 +140,7 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                         } else {
                             converter = converterClass.newInstance();
                         }
+                        connection = queryA.connection();
                         return;
                     }
                 }
@@ -161,16 +158,19 @@ public class RepositoryInvocationHandler implements InvocationHandler {
                         } else {
                             converter = converterClass.newInstance();
                         }
+                        connection = queryA.connection();
                         return;
                     }
                 }
                 query = "";
                 queryName = method.getName();
                 converter = null;
+                connection = "default";
             } else {
                 query = "";
                 queryName = method.getName();
                 converter = null;
+                connection = "default";
             }
         }
 
@@ -313,24 +313,13 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         }
 
         private void addParameter(Param param) {
-            if (param.generator().getName().equals(Generator.class.getName())) {
-                final String value = param.value();
-                if ("$$$generated$$$".equals(value)) {
-                    throw new IllegalArgumentException(String.format(
-                            "Either generator or value must be specified for parameter defintion '%s'!",
-                            param.name()));
-                }
-                parameterMap.put(param.name(), ConvertUtils.convert(value, param
-                        .type()));
-            } else {
-                try {
-                    final Generator generator = param.generator().newInstance();
-                    parameterMap.put(param.name(), ConvertUtils.convert(
-                            generator.generateValue(param), param.type()));
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    throw new IllegalArgumentException(
-                            "The generator cannot be instantiated. ", ex);
-                }
+            try {
+                final Generator generator = param.generator().newInstance();
+                parameterMap.put(param.name(),
+                        generator.generateValue(param));
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new IllegalArgumentException(
+                        "The generator cannot be instantiated. ", ex);
             }
         }
 
@@ -338,49 +327,24 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         public String getQueryTechnology() {
             return technology;
         }
+
+        @Override
+        public String getConnection() {
+            return connection;
+        }
     }
-    private final BeanManager beanManager;
+    private final QueryExecutorResolver queryExecutorResolver;
     private final String technology;
-    private final CreationalContext ctx;
 
     public RepositoryInvocationHandler(String technology,
-            BeanManager beanManager, CreationalContext ctx) {
-        this.beanManager = beanManager;
-        this.ctx = ctx;
+            QueryExecutorResolver resolver) {
+        this.queryExecutorResolver = resolver;
         this.technology = technology;
     }
 
     private QueryExecutor getExecutorByTechnology(String technology) {
-        Bean<?> resolvedBean;
-        if ("default".equalsIgnoreCase(technology)) {
-            Set<Bean<?>> queryExecutors = beanManager.getBeans(
-                    QueryExecutor.class, new TechnologyLiteral(technology));
-            if (queryExecutors.isEmpty()) {
-                queryExecutors = beanManager.getBeans(QueryExecutor.class,
-                        new AnnotationLiteral<Any>() {
-                    private static final long serialVersionUID = 1L;
-                });
-                if (queryExecutors.isEmpty()) {
-                    throw new UnsatisfiedResolutionException(
-                            "no queryexecutor defined.");
-                } else {
-                    resolvedBean = queryExecutors.iterator().next();
-                }
-            } else if (queryExecutors.size() > 1) {
-                throw new UnsatisfiedResolutionException(
-                        "more than one technologies found.");
-            } else {
-                resolvedBean = queryExecutors.iterator().next();
-            }
-        } else {
-            Set<Bean<?>> queryExecutors = beanManager.getBeans(
-                    QueryExecutor.class, new TechnologyLiteral(technology));
-            resolvedBean =
-                    beanManager.resolve(queryExecutors);
-        }
-        QueryExecutor qe = (QueryExecutor) this.beanManager.getReference(
-                resolvedBean, QueryExecutor.class, ctx);
-        return qe;
+        return this.queryExecutorResolver.getQueryExecutorForTechnology(
+                technology);
     }
 
     @Override

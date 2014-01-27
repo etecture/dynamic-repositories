@@ -37,16 +37,17 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api;
+package de.etecture.opensource.dynamicrepositories.spi;
 
 /**
- * this is an extension for {@link Repository} interfaces to use the repository
- * also to delete instances
+ * resolves the connection by technology and name.
  *
  * @author rhk
+ * @version
+ * @since
  */
-public interface DeleteSupport {
+public interface ConnectionResolver<T> {
 
-    void delete(String connection, Object instance) throws
-            EntityNotFoundException;
+    T getConnection(String name);
+
 }

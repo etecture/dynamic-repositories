@@ -107,4 +107,6 @@ public interface QueryMetaData<T> {
     Class<?> getRepositoryClass();
 
     String getQueryTechnology();
+
+    String getConnection();
 }

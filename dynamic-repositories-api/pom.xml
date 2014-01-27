@@ -81,6 +81,14 @@
         <developerConnection>scm:git:https://github.com/etecture/dynamic-repositories.git</developerConnection>
         <url>https://github.com/etecture/dynamic-repositories</url>
     </scm>
+    <dependencies>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.8.3</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
     <distributionManagement>
         <site>
             <id>http://commons.maven.intern.etecture.de</id>
