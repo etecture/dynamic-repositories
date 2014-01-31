@@ -40,9 +40,9 @@
 package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import javax.ejb.Singleton;
 
 /**
@@ -67,7 +67,7 @@ public class DummyQueryExecutor implements QueryExecutor {
     }
 
     @Override
-    public <T> T execute(QueryMetaData<T> metadata) {
+    public Object execute(QueryMetaData metadata) {
         System.out.printf("---> executing dummy: %s%n", metadata.getQuery());
         switch (metadata.getQueryKind()) {
             case RETRIEVE:

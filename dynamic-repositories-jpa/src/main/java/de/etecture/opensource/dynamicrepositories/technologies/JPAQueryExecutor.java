@@ -41,19 +41,22 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.ConnectionResolver;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.AbstractList;
 import java.util.List;
 import javax.ejb.Singleton;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 
@@ -77,7 +80,7 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
         try {
             return resolver.getConnection(connection).merge(instance);
         } catch (javax.persistence.EntityNotFoundException enfe) {
-            throw new EntityNotFoundException(enfe, instance.getClass(), null);
+            throw new EntityNotFoundException(enfe, instance.getClass());
         }
     }
 
@@ -87,19 +90,22 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
         try {
             resolver.getConnection(connection).remove(instance);
         } catch (javax.persistence.EntityNotFoundException enfe) {
-            throw new EntityNotFoundException(enfe, instance.getClass(), null);
+            throw new EntityNotFoundException(enfe, instance.getClass());
         }
     }
 
     private <T> TypedQuery<T> createQuery(QueryMetaData<T> metadata) {
         EntityManager em = resolver.getConnection(metadata.getConnection());
         TypedQuery<T> jpaQuery;
-        if (metadata.getQuery() == null || metadata.getQuery().trim().length() == 0) {
+        if (metadata.getQuery() == null || metadata.getQuery().trim().length()
+                == 0) {
             // look if there is a NamedQuery with query as name
-            jpaQuery = em.createNamedQuery(metadata.getQueryName(), metadata.getQueryType());
+            jpaQuery = em.createNamedQuery(metadata.getQueryName(), metadata
+                    .getQueryType());
         } else {
             // not found, so it is a normal query
-            jpaQuery = em.createQuery(metadata.getQuery(), metadata.getQueryType());
+            jpaQuery = em.createQuery(metadata.getQuery(), metadata
+                    .getQueryType());
         }
         if (metadata.getCount() > 0) {
             jpaQuery.setMaxResults(metadata.getCount());
@@ -108,80 +114,113 @@ public class JPAQueryExecutor extends AbstractQueryExecutor {
             jpaQuery.setFirstResult(metadata.getOffset());
         }
         for (String parameterName : metadata.getParameterNames()) {
-            jpaQuery.setParameter(parameterName, metadata.getParameterValue(parameterName));
+            jpaQuery.setParameter(parameterName, metadata.getParameterValue(
+                    parameterName));
         }
         return jpaQuery;
     }
 
     @Override
-    protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws EntityNotFoundException {
+    protected <T> T executeSingletonQuery(QueryMetaData<T> metadata) throws
+            EntityNotFoundException {
         EntityManager em = resolver.getConnection(metadata.getConnection());
-        List<T> resultList = createQuery(metadata).getResultList();
-        if (!resultList.isEmpty()) {
-            // get the single result.
-            T singleResult = resultList.get(0);
-            if (metadata.getConverter() == null) {
-                return singleResult;
+        try {
+            T result = createQuery(metadata).getSingleResult();
+            if (result != null) {
+                // get the single result.
+                if (metadata.getConverter() == null) {
+                    return result;
+                } else {
+                    return metadata.getConverter().convert(metadata
+                            .getQueryType(),
+                            result);
+                }
             } else {
-                return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), singleResult);
+                throw new EntityNotFoundException(metadata.getQueryType());
             }
-        } else {
-            throw new EntityNotFoundException(metadata.getQueryType(), "");
+        } catch (javax.persistence.EntityNotFoundException | NoResultException |
+                NonUniqueResultException ex) {
+            throw new EntityNotFoundException(ex, metadata.getQueryType());
         }
     }
 
     @Override
-    protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) {
+    protected <T> List<T> executeCollectionQuery(final QueryMetaData<T> metadata) {
         EntityManager em = resolver.getConnection(metadata.getConnection());
-        List<T> resultList = createQuery(metadata).getResultList();
+        final List<T> resultList = createQuery(metadata).getResultList();
         if (metadata.getConverter() == null) {
-            return metadata.getQueryType().cast(resultList);
+            return resultList;
         } else {
-            return metadata.getConverter().convert(metadata.getQueryType(), metadata.getQueryGenericType(), resultList);
+            return new AbstractList<T>() {
+                @Override
+                public T get(int index) {
+                    return metadata.getConverter().convert(metadata
+                            .getQueryType(), resultList.get(index));
+                }
+
+                @Override
+                public int size() {
+                    return resultList.size();
+                }
+            };
         }
     }
 
     @Override
-    protected <T> T executeUpdateQuery(QueryMetaData<T> metadata) throws Exception {
+    protected <T> T executeUpdateQuery(QueryMetaData<T> metadata) throws
+            Exception {
         EntityManager em = resolver.getConnection(metadata.getConnection());
-        return metadata.getQueryType().cast(createQuery(metadata).executeUpdate());
+        return metadata.getQueryType().cast(createQuery(metadata)
+                .executeUpdate());
     }
 
     @Override
-    protected <T> T executeBulkUpdateQuery(QueryMetaData<T> metadata) {
+    protected <T> List<T> executeBulkUpdateQuery(QueryMetaData<T> metadata) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected <T> T executeDeleteQuery(QueryMetaData<T> metadata) throws Exception {
-        return metadata.getQueryType().cast(createQuery(metadata).executeUpdate());
+    protected <T> T executeDeleteQuery(QueryMetaData<T> metadata) throws
+            Exception {
+        return metadata.getQueryType().cast(createQuery(metadata)
+                .executeUpdate());
     }
 
     @Override
-    protected <T> T executeBulkDeleteQuery(QueryMetaData<T> metadata) {
+    protected <T> List<T> executeBulkDeleteQuery(QueryMetaData<T> metadata) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected <T> T executeCreateQuery(QueryMetaData<T> metadata) throws EntityAlreadyExistsException {
+    protected <T> T executeCreateQuery(QueryMetaData<T> metadata) throws
+            EntityAlreadyExistsException {
         EntityManager em = resolver.getConnection(metadata.getConnection());
         try {
             // create a new instance
             T t = metadata.getQueryType().newInstance();
             // fill the instance
-            for (PropertyDescriptor pd : Introspector.getBeanInfo(metadata.getQueryType()).getPropertyDescriptors()) {
+            for (PropertyDescriptor pd : Introspector.getBeanInfo(metadata
+                    .getQueryType()).getPropertyDescriptors()) {
                 if (metadata.getParameterMap().containsKey(pd.getName())) {
-                    pd.getWriteMethod().invoke(t, metadata.getParameterMap().get(pd.getName()));
+                    pd.getWriteMethod().invoke(t, metadata.getParameterMap()
+                            .get(pd.getName()));
                     continue;
                 }
             }
             // persist the instance
             em.persist(t);
             return t;
-        } catch (IntrospectionException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        } catch (IntrospectionException | InstantiationException |
+                IllegalAccessException | IllegalArgumentException |
+                InvocationTargetException ex) {
             throw new PersistenceException("cannot set the fieldvalues", ex);
         } catch (javax.persistence.EntityExistsException eee) {
             throw new EntityAlreadyExistsException(metadata.getQueryType());
         }
+    }
+
+    @Override
+    protected <T> List<T> executeBulkCreateQuery(QueryMetaData<T> metadata) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

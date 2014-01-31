@@ -39,8 +39,6 @@
  */
 package de.etecture.opensource.dynamicrepositories.api;
 
-import java.lang.reflect.Type;
-
 /**
  * this is the basis interface for all ResultConverters.
  *
@@ -55,9 +53,8 @@ public interface ResultConverter<R> {
      * does the conversion of the given result set.
      *
      * @param returnType the class to be returned
-     * @param genericReturnType the generic type to be returned
      * @param result the result set to be converted
      * @return a converted instance of &lt;ReturnType&gt;
      */
-    R convert(Class<R> returnType, Type genericReturnType, Object result);
+    R convert(Class<R> returnType, Object result);
 }

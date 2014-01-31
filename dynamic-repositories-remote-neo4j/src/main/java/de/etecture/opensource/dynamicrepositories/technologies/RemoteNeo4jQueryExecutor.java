@@ -49,8 +49,7 @@ import de.etecture.opensource.jeelogging.api.Log;
 import static de.etecture.opensource.jeelogging.api.LogEvent.Severity.*;
 import de.herschke.neo4j.uplink.api.CypherResult;
 import de.herschke.neo4j.uplink.api.Neo4jUplink;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.util.AbstractList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -93,7 +92,7 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
             if (!resultList.isEmpty()) {
                 return resultList.get(0);
             } else {
-                throw new EntityNotFoundException(metadata.getQueryType(), "");
+                throw new EntityNotFoundException(metadata.getQueryType());
             }
         } else {
             CypherResult result = neo4jServer.executeCypherQuery(query, metadata
@@ -106,41 +105,42 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
                     return (T) singleResult;
                 } else {
                     return metadata.getConverter().convert(metadata
-                            .getQueryType(), metadata.getQueryGenericType(),
+                            .getQueryType(),
                             singleResult);
                 }
             } else {
-                throw new EntityNotFoundException(metadata.getQueryType(), "");
+                throw new EntityNotFoundException(metadata.getQueryType());
             }
         }
     }
 
     @Override
-    protected <T> T executeCollectionQuery(QueryMetaData<T> metadata) throws
+    protected <T> List<T> executeCollectionQuery(final QueryMetaData<T> metadata)
+            throws
             Exception {
         String query = buildQuery(metadata);
         log.log(FINER, "query is: %n%s%n", query);
         log.log(FINER, "parameters are: %n%s%n", metadata.getParameterMap());
         Neo4jUplink neo4jServer = connectionResolver.getConnection(metadata
                 .getConnection());
+        final List<T> result = neo4jServer.executeCypherQuery(metadata
+                .getQueryType(), query, metadata.getParameterMap());
         if (metadata.getConverter() == null && metadata.getQueryType()
                 .isInterface()) {
-            Class<?> componentType =
-                    metadata.getQueryType().isArray() ? metadata.getQueryType()
-                    .getComponentType() : getComponentType(metadata
-                    .getQueryGenericType());
-            return (T) neo4jServer.executeCypherQuery(componentType, query,
-                    metadata.getParameterMap());
+            return result;
         } else {
-            CypherResult result = neo4jServer.executeCypherQuery(query, metadata
-                    .getParameterMap());
-            log.log(FINEST, result.toString());
-            if (metadata.getConverter() == null) {
-                return metadata.getQueryType().cast(result);
-            } else {
-                return metadata.getConverter().convert(metadata.getQueryType(),
-                        metadata.getQueryGenericType(), result.getAllValues());
-            }
+            return new AbstractList<T>() {
+                @Override
+                public T get(int index) {
+                    return metadata.getConverter().convert(metadata
+                            .getQueryType(), result.get(index));
+                }
+
+                @Override
+                public int size() {
+                    return result.size();
+                }
+            };
         }
     }
 
@@ -151,7 +151,8 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     }
 
     @Override
-    protected <T> T executeBulkUpdateQuery(QueryMetaData<T> metadata) throws
+    protected <T> List<T> executeBulkUpdateQuery(QueryMetaData<T> metadata)
+            throws
             Exception {
         return executeCollectionQuery(metadata);
     }
@@ -163,7 +164,15 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     }
 
     @Override
-    protected <T> T executeBulkDeleteQuery(QueryMetaData<T> metadata) throws
+    protected <T> List<T> executeBulkDeleteQuery(QueryMetaData<T> metadata)
+            throws
+            Exception {
+        return executeCollectionQuery(metadata);
+    }
+
+    @Override
+    protected <T> List<T> executeBulkCreateQuery(QueryMetaData<T> metadata)
+            throws
             Exception {
         return executeCollectionQuery(metadata);
     }
@@ -184,17 +193,6 @@ public class RemoteNeo4jQueryExecutor extends AbstractQueryExecutor {
     public <T> T update(String connection, T instance) throws
             EntityNotFoundException {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private Class<?> getComponentType(Type type) {
-        if (type instanceof ParameterizedType) {
-            ParameterizedType pgrt = (ParameterizedType) type;
-            return (Class<?>) pgrt.getActualTypeArguments()[0];
-        } else {
-            throw new ClassCastException(String.format(
-                    "the genericReturnType: %s is not a ParameterizedType!",
-                    type == null ? "null" : type.toString()));
-        }
     }
 
     private String buildQuery(

@@ -33,12 +33,12 @@
         <dependency>
             <groupId>de.herschke</groupId>
             <artifactId>neo4j-uplink-api</artifactId>
-            <version>2.0.0</version>
+            <version>[2.0.0,)</version>
         </dependency>
         <dependency>
             <groupId>de.herschke</groupId>
             <artifactId>neo4j-uplink-core</artifactId>
-            <version>2.0.0</version>
+            <version>[2.0.0,)</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -163,7 +163,31 @@
                             <includeScope>compile</includeScope>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>lib-copy</id>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/libs</outputDirectory>
+                            <artifactItems>
+                                <artifactItem>
+                                    <artifactId>neo4j-uplink-mapping</artifactId>
+                                    <groupId>de.herschke</groupId>
+                                    <version>2.0.1-SNAPSHOT</version>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>de.herschke</groupId>
+                        <artifactId>neo4j-uplink-mapping</artifactId>
+                        <version>2.0.1-SNAPSHOT</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -265,7 +289,7 @@
                     <plugin>
                         <groupId>de.herschke</groupId>
                         <artifactId>neo4j-maven-plugin</artifactId>
-                        <version>1.2.2</version>
+                        <version>2.0.1-SNAPSHOT</version>
                         <executions>
                             <execution>
                                 <id>start-neo4j-server</id>

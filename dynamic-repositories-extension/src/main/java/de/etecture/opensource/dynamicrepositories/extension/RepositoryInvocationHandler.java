@@ -59,7 +59,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -76,6 +76,8 @@ public class RepositoryInvocationHandler implements InvocationHandler {
 
     private static class MethodQueryMetaData<T> implements QueryMetaData<T> {
 
+        private final Type type;
+        private final Class<T> queryType;
         private final Method method;
         private final Object[] values;
         private final Map<String, Object> parameterMap = new HashMap<>();
@@ -90,6 +92,20 @@ public class RepositoryInvocationHandler implements InvocationHandler {
         private MethodQueryMetaData(Class<?> repositoryClass, String technology,
                 Method method, Object[] values) throws Exception {
             this.kind = Kind.valueOf(method);
+            if (Collection.class.isAssignableFrom(method.getReturnType())
+                    || method.getReturnType().isArray()) {
+                this.type = Type.LIST;
+                if (method.getReturnType().isArray()) {
+                    this.queryType = (Class<T>) method.getReturnType()
+                            .getComponentType();
+                } else {
+                    this.queryType = (Class<T>) ((ParameterizedType) method
+                            .getGenericReturnType()).getActualTypeArguments()[0];
+                }
+            } else {
+                this.type = Type.SINGLE;
+                this.queryType = (Class<T>) method.getReturnType();
+            }
             this.technology = technology;
             this.repositoryClass = repositoryClass;
             this.method = method;
@@ -248,13 +264,12 @@ public class RepositoryInvocationHandler implements InvocationHandler {
 
         @Override
         public Class<T> getQueryType() {
-            // Class<T> baseType = (Class<T>) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
-            return (Class<T>) method.getReturnType();
+            return queryType;
         }
 
         @Override
-        public Type getQueryGenericType() {
-            return method.getGenericReturnType();
+        public Type getType() {
+            return type;
         }
 
         @Override

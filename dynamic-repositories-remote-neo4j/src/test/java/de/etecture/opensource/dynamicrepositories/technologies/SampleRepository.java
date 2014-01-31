@@ -62,13 +62,13 @@ public interface SampleRepository {
     @Retrieve
     @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(initialMovie:Movie) \n"
             + "WHERE n.name = {actorname} AND initialMovie.title = {initialmovietitle}\n"
-            + "RETURN n.name as `name`, initialMovie.title, initialMovie.year")
+            + "RETURN n.name as `name`, initialMovie")
     Actor findPersonWithInitialMovieByName(@ParamName("actorname") String name, @ParamName("initialmovietitle") String title);
 
     @Retrieve
     @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(m:Movie) \n"
             + "WHERE n.name = {actorname} \n"
-            + "RETURN n.name as `name`, collect(m.title) as `movies.title`, collect(m.year) as `movies.year`, collect(DISTINCT r.role) AS `roles`")
+            + "RETURN n.name as `name`, collect(m) as `movies`, collect(DISTINCT r.role) AS `roles`")
     Actor findPersonWithMoviesByName(@ParamName("actorname") String name);
 
     @Retrieve

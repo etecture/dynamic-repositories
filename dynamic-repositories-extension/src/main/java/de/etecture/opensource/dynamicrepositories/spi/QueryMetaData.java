@@ -46,15 +46,21 @@ import de.etecture.opensource.dynamicrepositories.api.Retrieve;
 import de.etecture.opensource.dynamicrepositories.api.Update;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 
 /**
  *
+ * @param <T>
  * @author rhk
  */
 public interface QueryMetaData<T> {
+
+    public enum Type {
+
+        SINGLE,
+        LIST
+    }
 
     public enum Kind {
 
@@ -78,6 +84,8 @@ public interface QueryMetaData<T> {
         }
     }
 
+    Type getType();
+
     Set<String> getParameterNames();
 
     Map<String, Object> getParameterMap();
@@ -96,11 +104,10 @@ public interface QueryMetaData<T> {
 
     Kind getQueryKind();
 
-    Exception createException(Class<? extends Annotation> qualifier, String message, Exception cause);
+    Exception createException(Class<? extends Annotation> qualifier,
+            String message, Exception cause);
 
     ResultConverter<T> getConverter();
-
-    Type getQueryGenericType();
 
     Annotation[] getAnnotations();
 

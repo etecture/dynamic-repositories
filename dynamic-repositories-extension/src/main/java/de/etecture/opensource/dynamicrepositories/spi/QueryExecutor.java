@@ -56,5 +56,5 @@ public interface QueryExecutor extends UpdateSupport, DeleteSupport {
      * @return the resultset of the query
      * @throws Exception
      */
-    <T> T execute(QueryMetaData<T> metadata) throws Exception;
+    Object execute(QueryMetaData metadata) throws Exception;
 }
