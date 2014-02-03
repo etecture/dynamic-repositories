@@ -5,7 +5,6 @@ import de.etecture.opensource.dynamicrepositories.spi.QueryExecutorResolver;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 
 /**
@@ -29,8 +28,10 @@ public class DefaultQueryExecutorResolver implements QueryExecutorResolver {
 
     @Override
     public QueryExecutor getDefaultExecutor() {
-        return executorInstances.select(new AnnotationLiteral<Default>() {
-            private static final long serialVersionUID = 1L;
-        }).get();
+        if (executorInstances.isAmbiguous()) {
+            throw new RuntimeException(
+                    "can only handle one executor for technology=default! Specify the desired technology in @Query, if more than one Query-Executors are deployed!");
+        }
+        return executorInstances.get();
     }
 }
