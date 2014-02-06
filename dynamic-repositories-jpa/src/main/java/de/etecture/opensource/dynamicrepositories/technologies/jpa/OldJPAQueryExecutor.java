@@ -37,7 +37,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.technologies;
+package de.etecture.opensource.dynamicrepositories.technologies.jpa;
 
 import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
 import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
@@ -68,7 +68,7 @@ import javax.persistence.TypedQuery;
  */
 @Technology("JPA")
 @Singleton
-public class JPAQueryExecutor extends AbstractQueryExecutor {
+public class OldJPAQueryExecutor extends AbstractQueryExecutor {
 
     @Inject
     @Technology("JPA")

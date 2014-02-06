@@ -52,7 +52,7 @@ import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryInvocationHandler;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.DummyQueryExecutor;
-import de.etecture.opensource.dynamicrepositories.technologies.JPAQueryExecutor;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.OldJPAQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
 import javax.enterprise.inject.spi.Extension;
 import javax.inject.Inject;
@@ -90,7 +90,7 @@ public class SampleRepositoryIT {
     @Deployment(order = 1, name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war")
-                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, JPAQueryExecutor.class, DummyQueryExecutor.class, Offset.class, Count.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class, ResultConverter.class, SampleResultConverter.class);
+                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, OldJPAQueryExecutor.class, DummyQueryExecutor.class, Offset.class, Count.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class, ResultConverter.class, SampleResultConverter.class);
         wa.addAsWebInfResource("META-INF/beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsResource("META-INF/persistence.xml");
