@@ -4,10 +4,10 @@
  */
 package de.etecture.opensource.dynamicrepositories.spi;
 
-import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExists;
-import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFound;
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.api.annotations.EntityAlreadyExists;
+import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityAlreadyExistsException;
+import de.etecture.opensource.dynamicrepositories.api.annotations.EntityNotFound;
+import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityNotFoundException;
 import java.util.List;
 
 /**

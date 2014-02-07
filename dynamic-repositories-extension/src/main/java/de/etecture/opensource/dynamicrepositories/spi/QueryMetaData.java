@@ -39,11 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.spi;
 
-import de.etecture.opensource.dynamicrepositories.api.Create;
-import de.etecture.opensource.dynamicrepositories.api.Delete;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
-import de.etecture.opensource.dynamicrepositories.api.Retrieve;
-import de.etecture.opensource.dynamicrepositories.api.Update;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -64,14 +60,14 @@ public interface QueryMetaData<T> {
 
     public enum Kind {
 
-        CREATE(Create.class),
-        RETRIEVE(Retrieve.class),
-        UPDATE(Update.class),
-        DELETE(Delete.class);
+        CREATE(),
+        RETRIEVE(),
+        UPDATE(),
+        DELETE();
         private final Class<? extends Annotation> annotation;
 
-        private Kind(Class<? extends Annotation> annotation) {
-            this.annotation = annotation;
+        private Kind() {
+            this.annotation = null;
         }
 
         public static Kind valueOf(Method method) {
@@ -107,7 +103,7 @@ public interface QueryMetaData<T> {
     Exception createException(Class<? extends Annotation> qualifier,
             String message, Exception cause);
 
-    ResultConverter<T> getConverter();
+    ResultConverter getConverter();
 
     Annotation[] getAnnotations();
 

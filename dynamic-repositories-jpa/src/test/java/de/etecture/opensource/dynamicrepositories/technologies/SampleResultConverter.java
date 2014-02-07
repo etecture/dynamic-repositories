@@ -41,16 +41,17 @@ package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.Sample;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Query;
 
 /**
  * converts a Sample value to a String value...
  *
  * @author rhk
  */
-public class SampleResultConverter implements ResultConverter<String> {
+public class SampleResultConverter implements ResultConverter {
 
     @Override
-    public String convert(Class<String> returnType, Object queryResult) {
+    public Object convert(Query query, Object queryResult) {
         System.out.printf("---> convert %s%n", queryResult);
         return ((Sample) queryResult).getName() + "::" + ((Sample) queryResult)
                 .getId();

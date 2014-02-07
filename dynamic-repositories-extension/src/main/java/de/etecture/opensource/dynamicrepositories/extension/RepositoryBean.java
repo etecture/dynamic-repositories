@@ -39,7 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.extension;
 
-import de.etecture.opensource.dynamicrepositories.spi.QueryExecutorResolver;
+import de.etecture.opensource.dynamicrepositories.executor.RepositoryMethodInvocationHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -49,6 +49,7 @@ import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Default;
+import javax.enterprise.inject.New;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -109,14 +110,17 @@ public class RepositoryBean implements Bean<Object> {
 
     @Override
     public Object create(CreationalContext ctx) {
-        QueryExecutorResolver resolver =
-                (QueryExecutorResolver) beanManager.resolve(
-                beanManager.getBeans(QueryExecutorResolver.class)).create(
+        RepositoryMethodInvocationHandler handler =
+                (RepositoryMethodInvocationHandler) beanManager.resolve(
+                beanManager.getBeans(RepositoryMethodInvocationHandler.class,
+                new AnnotationLiteral<New>() {
+            private static final long serialVersionUID = 1L;
+        })).create(
                 ctx);
+        handler.setTechnology(repositoryKey.getTechnology());
         return Proxy.newProxyInstance(repositoryKey.getRepositoryInterface()
                 .getClassLoader(), new Class[]{repositoryKey
-            .getRepositoryInterface()}, new RepositoryInvocationHandler(
-                repositoryKey.getTechnology(), resolver));
+            .getRepositoryInterface()}, handler);
     }
 
     @Override

@@ -39,19 +39,19 @@
  */
 package de.etecture.opensource.dynamicrepositories;
 
-import de.etecture.opensource.dynamicrepositories.api.Count;
-import de.etecture.opensource.dynamicrepositories.api.Create;
-import de.etecture.opensource.dynamicrepositories.api.Delete;
-import de.etecture.opensource.dynamicrepositories.api.DeleteSupport;
-import de.etecture.opensource.dynamicrepositories.api.Offset;
-import de.etecture.opensource.dynamicrepositories.api.ParamName;
-import de.etecture.opensource.dynamicrepositories.api.Queries;
-import de.etecture.opensource.dynamicrepositories.api.Query;
-import de.etecture.opensource.dynamicrepositories.api.Repository;
-import de.etecture.opensource.dynamicrepositories.api.Retrieve;
-import de.etecture.opensource.dynamicrepositories.api.Update;
-import de.etecture.opensource.dynamicrepositories.api.UpdateSupport;
-import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
+import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Query;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Count;
+import de.etecture.opensource.dynamicrepositories.api.extensions.DeleteSupport;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Offset;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Repository;
+import de.etecture.opensource.dynamicrepositories.api.extensions.UpdateSupport;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Create;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Delete;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.NamedQuery;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.NativeQuery;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Retrieve;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Update;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
 
@@ -74,51 +74,57 @@ public interface SampleRepository extends
 
     // --- Finder-Methods -----------------------------------------------------
     @Retrieve
+    @NamedQuery
     Sample findById(@ParamName("id") long id);
 
     @Retrieve
-    @Query(name = "findById")
+    @Query(statement = "findById")
+    @NamedQuery
     Sample findByIdWithException(@ParamName("id") long id) throws MyException;
 
     @Retrieve
     List<Sample> findAll();
 
     @Retrieve
-    @Query("select s from Sample s")
+    @Query(statement = "select s from Sample s")
     List<Sample> findAllByQuery();
 
     @Retrieve
     @Count(10)
-    @Query(name = "findAll")
+    @Query(statement = "findAll")
     List<Sample> findAllPagedWithDefaultPageSize(@Offset int index);
 
     @Retrieve
-    @Query(name = "findAll")
-    List<Sample> findAllPagedWithDynamicPageSize(@Offset int index, @Count int count);
+    @Query(statement = "findAll")
+    List<Sample> findAllPagedWithDynamicPageSize(@Offset int index,
+            @Count int count);
 
     @Retrieve
-    @Queries({
-        @Query("select s.name from Sample s where s.id = :id"),
-        @Query(technology = "Neo4j", value = "dummy-%s-bliblablubb")
-    })
+    //@Queries({
+    @Query(statement = "select s.name from Sample s where s.id = :id")
+    //  @Query(technology = "Neo4j", value = "dummy-%s-bliblablubb")
+    //})
     String getSampleName(@ParamName("id") long id);
 
     @Retrieve
-    @Query(value = "select s from Sample s where s.id = :id", converter = SampleResultConverter.class)
+    @Query(statement = "select s from Sample s where s.id = :id")//, converter = SampleResultConverter.class)
     String getSampleString(@ParamName("id") long id);
 
     @Retrieve
-    @Query("select count(s) from Sample s")
+    @Query(statement = "select count(s) from Sample s")
     Long getSampleCount();
 
     // --- Bulk-Update-Methods ------------------------------------------------
     @Update
-    @Query("update Sample s set s.name = :newname where s.name = :oldname")
-    Integer updateName(@ParamName("oldname") String oldname, @ParamName("newname") String newname);
+    @NativeQuery
+    @Query(statement =
+            "update Sample s set s.name = :newname where s.name = :oldname")
+    Integer updateName(@ParamName("oldname") String oldname, @ParamName(
+            "newname") String newname);
 
     // --- Bulk-Delete-Methods ------------------------------------------------
     @Delete
-    @Query("delete from Sample s where s.name = :name")
+    @Query(statement = "delete from Sample s where s.name = :name")
     @RolesAllowed("SampleDelete")
     Integer deleteByName(@ParamName("name") String name);
 }

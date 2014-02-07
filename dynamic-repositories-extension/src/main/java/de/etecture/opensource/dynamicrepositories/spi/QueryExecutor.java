@@ -39,8 +39,8 @@
  */
 package de.etecture.opensource.dynamicrepositories.spi;
 
-import de.etecture.opensource.dynamicrepositories.api.DeleteSupport;
-import de.etecture.opensource.dynamicrepositories.api.UpdateSupport;
+import de.etecture.opensource.dynamicrepositories.api.extensions.DeleteSupport;
+import de.etecture.opensource.dynamicrepositories.api.extensions.UpdateSupport;
 
 /**
  * the implementations of this interface executes queries

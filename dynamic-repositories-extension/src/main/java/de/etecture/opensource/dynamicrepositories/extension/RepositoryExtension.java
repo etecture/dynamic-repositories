@@ -39,7 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.extension;
 
-import de.etecture.opensource.dynamicrepositories.api.Repository;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Repository;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import java.util.HashMap;
 import java.util.HashSet;

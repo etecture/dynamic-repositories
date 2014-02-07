@@ -17,7 +17,7 @@ public interface JPAQueryHints {
      * <li>DELETE
      * </ul>
      */
-    String QUERY_KIND = JPAQueryHints.class.getName() + "#QUERY_KIND";
+    String QUERY_KIND = "JPA_QUERY_KIND";
     /**
      * this hint specifies the type of the query. possible values are:
      * <ul>
@@ -26,5 +26,5 @@ public interface JPAQueryHints {
      * <li>JPAQL
      * </ul>
      */
-    String QUERY_TYPE = JPAQueryHints.class.getName() + "#QUERY_TYPE";
+    String QUERY_TYPE = "JPA_QUERY_TYPE";
 }

@@ -39,10 +39,9 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
-import de.etecture.opensource.dynamicrepositories.api.ParamName;
-import de.etecture.opensource.dynamicrepositories.api.Query;
-import de.etecture.opensource.dynamicrepositories.api.Repository;
-import de.etecture.opensource.dynamicrepositories.api.Retrieve;
+import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Query;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Repository;
 import java.util.List;
 
 /**
@@ -53,28 +52,23 @@ import java.util.List;
 @Repository
 public interface SampleRepository {
 
-    @Retrieve
-    @Query(value = "MATCH (n:Actor) \n"
+    @Query(statement = "MATCH (n:Actor) \n"
             + "WHERE n.name = {actorname} \n"
             + "RETURN n.name as `name`")
     Actor findPersonByName(@ParamName("actorname") String name);
 
-    @Retrieve
-    @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(initialMovie:Movie) \n"
+    @Query(statement = "MATCH (n:Actor)-[r:ACTS_IN]->(initialMovie:Movie) \n"
             + "WHERE n.name = {actorname} AND initialMovie.title = {initialmovietitle}\n"
             + "RETURN n.name as `name`, initialMovie")
     Actor findPersonWithInitialMovieByName(@ParamName("actorname") String name, @ParamName("initialmovietitle") String title);
 
-    @Retrieve
-    @Query(value = "MATCH (n:Actor)-[r:ACTS_IN]->(m:Movie) \n"
+    @Query(statement = "MATCH (n:Actor)-[r:ACTS_IN]->(m:Movie) \n"
             + "WHERE n.name = {actorname} \n"
             + "RETURN n.name as `name`, collect(m) as `movies`, collect(DISTINCT r.role) AS `roles`")
     Actor findPersonWithMoviesByName(@ParamName("actorname") String name);
 
-    @Retrieve
     List<Movie> findMoviesWherePersonIsAnActor(@ParamName("actorname") String name);
 
-    @Retrieve
-    @Query(name = "anotherQuery")
+    @Query(statement = "anotherQuery")
     Movie findMovieWithActors(@ParamName("movietitle") String title);
 }

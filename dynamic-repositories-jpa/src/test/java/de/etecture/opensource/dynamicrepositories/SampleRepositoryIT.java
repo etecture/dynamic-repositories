@@ -39,21 +39,21 @@
  */
 package de.etecture.opensource.dynamicrepositories;
 
-import de.etecture.opensource.dynamicrepositories.api.Count;
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
-import de.etecture.opensource.dynamicrepositories.api.Offset;
-import de.etecture.opensource.dynamicrepositories.api.ParamName;
-import de.etecture.opensource.dynamicrepositories.api.Repository;
 import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
-import de.etecture.opensource.dynamicrepositories.api.Retrieve;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Count;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Offset;
+import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Repository;
+import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.executor.RepositoryMethodInvocationHandler;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryBean;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
-import de.etecture.opensource.dynamicrepositories.extension.RepositoryInvocationHandler;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.spi.Technology;
 import de.etecture.opensource.dynamicrepositories.technologies.DummyQueryExecutor;
-import de.etecture.opensource.dynamicrepositories.technologies.jpa.OldJPAQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.OldJPAQueryExecutor;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Retrieve;
 import javax.enterprise.inject.spi.Extension;
 import javax.inject.Inject;
 import static org.fest.assertions.Assertions.assertThat;
@@ -90,7 +90,13 @@ public class SampleRepositoryIT {
     @Deployment(order = 1, name = "test-candidate")
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war")
-                .addClasses(Sample.class, SampleRepository.class, Retrieve.class, QueryExecutor.class, ParamName.class, Technology.class, OldJPAQueryExecutor.class, DummyQueryExecutor.class, Offset.class, Count.class, RepositoryInvocationHandler.class, Repository.class, RepositoryBean.class, RepositoryExtension.class, ResultConverter.class, SampleResultConverter.class);
+                .addClasses(Sample.class, SampleRepository.class, Retrieve.class,
+                QueryExecutor.class, ParamName.class, Technology.class,
+                OldJPAQueryExecutor.class, DummyQueryExecutor.class,
+                Offset.class, Count.class,
+                RepositoryMethodInvocationHandler.class, Repository.class,
+                RepositoryBean.class, RepositoryExtension.class,
+                ResultConverter.class, SampleResultConverter.class);
         wa.addAsWebInfResource("META-INF/beans.xml");
         wa.addAsWebInfResource("ejb-jar.xml");
         wa.addAsResource("META-INF/persistence.xml");

@@ -39,7 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
 import de.etecture.opensource.dynamicrepositories.spi.Technology;

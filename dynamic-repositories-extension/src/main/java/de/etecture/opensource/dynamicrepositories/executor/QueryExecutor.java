@@ -13,10 +13,9 @@ public interface QueryExecutor {
     /**
      * executes the query.
      *
-     * @param <R> the type of the expected result for this query
      * @param query the query to
      * @return the result for this query
      * @throws QueryExecutionException
      */
-    <R> R execute(Query<R> query) throws QueryExecutionException;
+    Object execute(Query<?> query) throws QueryExecutionException;
 }

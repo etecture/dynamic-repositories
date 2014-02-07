@@ -1,19 +1,19 @@
 package de.etecture.opensource.remoteneo4j;
 
-import de.etecture.opensource.dynamicrepositories.api.Generator;
-import de.etecture.opensource.dynamicrepositories.api.Param;
+import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
 import java.util.UUID;
 
 /**
- * a basic implementation of the {@link Generator} interface to generate unique
- * ids
+ * a basic implementation of the {@link ParamValueGenerator} interface to
+ * generate unique * ids
  *
  * @author rhk
  */
-public class UniqueIdGenerator implements Generator {
+public class UniqueIdGenerator implements ParamValueGenerator {
 
     @Override
-    public Object generateValue(Param definition) {
+    public Object generate(Param definition) {
         return UUID.randomUUID().toString();
     }
 }

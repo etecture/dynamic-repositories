@@ -39,7 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories;
 
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFound;
+import de.etecture.opensource.dynamicrepositories.api.annotations.EntityNotFound;
 import javax.ejb.ApplicationException;
 
 /**

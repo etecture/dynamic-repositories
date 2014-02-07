@@ -1,5 +1,6 @@
 package de.etecture.opensource.dynamicrepositories.executor;
 
+import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
@@ -57,12 +58,21 @@ public interface Query<R> {
     Object getParameterValue(String name);
 
     /**
+     * returns the value for a specific parameter
+     *
+     * @param name
+     * @param defaultValue
+     * @return
+     */
+    Object getParameterValue(String name, Object defaultValue);
+
+    /**
      * returns true, if the hint with the name is specified.
      *
      * @param name
      * @return
      */
-    boolean hasHint(String name);
+    boolean hasQueryHint(String name);
 
     /**
      * returns a set of query hint names.
@@ -80,9 +90,25 @@ public interface Query<R> {
     Object getQueryHintValue(String name);
 
     /**
+     * returns the value for the specific query hint.
+     *
+     * @param name
+     * @param defaultValue
+     * @return
+     */
+    Object getQueryHintValue(String name, Object defaultValue);
+
+    /**
      * the expected type of the result for this query
      *
      * @return
      */
     Class<R> getResultType();
+
+    /**
+     * the expected type of the result for this query
+     *
+     * @return
+     */
+    Type getGenericResultType();
 }

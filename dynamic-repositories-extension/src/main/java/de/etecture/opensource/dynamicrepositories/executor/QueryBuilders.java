@@ -21,6 +21,10 @@ public class QueryBuilders {
     @Any
     Instance<QueryBuilder> anyQueryBuilders;
 
+    public boolean isRepositoryMethod(String technology, Method method) {
+        return resolve(technology).isRepositoryMethod(method);
+    }
+
     public <R> Query<R> buildQuery(String technology, Method method,
             Object... args) {
         return resolve(technology).buildQuery(method, args);

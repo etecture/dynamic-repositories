@@ -39,8 +39,8 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies.jpa;
 
-import de.etecture.opensource.dynamicrepositories.api.EntityAlreadyExistsException;
-import de.etecture.opensource.dynamicrepositories.api.EntityNotFoundException;
+import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityAlreadyExistsException;
+import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityNotFoundException;
 import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.ConnectionResolver;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
