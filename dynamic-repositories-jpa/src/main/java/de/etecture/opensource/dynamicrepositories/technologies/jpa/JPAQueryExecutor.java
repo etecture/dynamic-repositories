@@ -4,7 +4,7 @@ import de.etecture.opensource.dynamicrepositories.executor.Query;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.dynamicrepositories.technologies.jpa.utils.DefaultLiteral;
 import de.etecture.opensource.dynamicrepositories.technologies.jpa.utils.NamedLiteral;
 import javax.enterprise.inject.Any;

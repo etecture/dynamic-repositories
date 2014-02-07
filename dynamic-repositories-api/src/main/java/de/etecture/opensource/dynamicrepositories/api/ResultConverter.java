@@ -39,24 +39,23 @@
  */
 package de.etecture.opensource.dynamicrepositories.api;
 
-import de.etecture.opensource.dynamicrepositories.api.annotations.Query;
-
 /**
  * this is the basis interface for all ResultConverters.
  *
  * ResultConverters are used if the result of the query is not the same as the
  * methods return type.
  *
+ * @param <R> the type this converter is responsible of.
  * @author rhk
  */
-public interface ResultConverter {
+public interface ResultConverter<R> {
 
     /**
      * does the conversion of the given result set.
      *
-     * @param query the query metadata
      * @param result the result set to be converted
+     * @param resultType
      * @return a converted instance of &lt;ReturnType&gt;
      */
-    Object convert(Query query, Object result);
+    R convert(Object result, Class<R> resultType);
 }

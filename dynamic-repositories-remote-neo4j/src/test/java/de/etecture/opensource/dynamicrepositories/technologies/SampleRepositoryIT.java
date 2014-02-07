@@ -40,7 +40,7 @@
 package de.etecture.opensource.dynamicrepositories.technologies;
 
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.jeelogging.bridges.sysout.SysoutLoggingBridge;
 import java.io.File;
 import java.util.List;

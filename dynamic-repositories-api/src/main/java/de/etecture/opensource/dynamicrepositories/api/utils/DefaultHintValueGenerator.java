@@ -1,4 +1,4 @@
-package de.etecture.opensource.dynamicrepositories.api.defaults;
+package de.etecture.opensource.dynamicrepositories.api.utils;
 
 import de.etecture.opensource.dynamicrepositories.api.HintValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Hint;

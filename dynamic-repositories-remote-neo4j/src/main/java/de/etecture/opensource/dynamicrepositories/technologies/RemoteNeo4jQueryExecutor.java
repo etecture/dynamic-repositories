@@ -44,7 +44,7 @@ import de.etecture.opensource.dynamicrepositories.spi.AbstractQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.ConnectionResolver;
 import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.jeelogging.api.Log;
 import static de.etecture.opensource.jeelogging.api.LogEvent.Severity.*;
 import de.herschke.neo4j.uplink.api.CypherResult;

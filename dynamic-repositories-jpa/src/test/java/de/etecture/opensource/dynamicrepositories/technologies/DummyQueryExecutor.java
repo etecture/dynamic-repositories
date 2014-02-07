@@ -39,10 +39,10 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies;
 
-import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityNotFoundException;
-import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
-import de.etecture.opensource.dynamicrepositories.spi.QueryMetaData;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import javax.ejb.Singleton;
 
 /**
@@ -55,25 +55,10 @@ import javax.ejb.Singleton;
 public class DummyQueryExecutor implements QueryExecutor {
 
     @Override
-    public <T> T update(String connection, T instance) throws
-            EntityNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void delete(String connection, Object instance) throws
-            EntityNotFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Object execute(QueryMetaData metadata) {
-        System.out.printf("---> executing dummy: %s%n", metadata.getQuery());
-        switch (metadata.getQueryKind()) {
-            case RETRIEVE:
-                return metadata.getQueryType().cast(String.format(metadata.getQuery(), metadata.getParameterMap().values().toArray()));
-            default:
-                throw new UnsupportedOperationException("Not supported yet: " + metadata.getQueryKind());
-        }
+    public Object execute(
+            Query<?> query) throws QueryExecutionException {
+        System.out.printf("---> executing dummy: %s%n", query.getStatement());
+        return query.getResultType().cast(String.format(query.getStatement(),
+                query.getParameters().values().toArray()));
     }
 }

@@ -37,24 +37,24 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.spi;
+package de.etecture.opensource.dynamicrepositories.executor;
 
-import de.etecture.opensource.dynamicrepositories.api.extensions.DeleteSupport;
-import de.etecture.opensource.dynamicrepositories.api.extensions.UpdateSupport;
+import javax.enterprise.util.AnnotationLiteral;
 
-/**
- * the implementations of this interface executes queries
- *
- * @author rhk
- */
-public interface QueryExecutor extends UpdateSupport, DeleteSupport {
+// must be subclassed, due to select method
 
-    /**
-     * executes the given query
-     *
-     * @param metadata the {@link QueryMetaData} to be used to execute the query
-     * @return the resultset of the query
-     * @throws Exception
-     */
-    Object execute(QueryMetaData metadata) throws Exception;
+@SuppressWarnings(value = "AnnotationAsSuperInterface") // must be subclassed, due to select method
+public class TechnologyLiteral extends AnnotationLiteral<Technology> implements
+        Technology {
+    static final long serialVersionUID = 0;
+    private final String technologyName;
+
+    public TechnologyLiteral(String technologyName) {
+        this.technologyName = technologyName;
+    }
+
+    @Override
+    public String value() {
+        return technologyName;
+    }
 }

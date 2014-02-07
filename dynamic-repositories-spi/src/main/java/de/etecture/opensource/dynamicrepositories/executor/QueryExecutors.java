@@ -1,6 +1,5 @@
 package de.etecture.opensource.dynamicrepositories.executor;
 
-import de.etecture.opensource.dynamicrepositories.extension.TechnologyLiteral;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
@@ -20,8 +19,8 @@ public class QueryExecutors {
     @Any
     Instance<QueryExecutor> anyExecutor;
 
-    public <R> R execute(
-            Query<R> query) throws QueryExecutionException {
+    public Object execute(
+            Query<?> query) throws QueryExecutionException {
         return resolve(query.getTechnology()).execute(query);
     }
 

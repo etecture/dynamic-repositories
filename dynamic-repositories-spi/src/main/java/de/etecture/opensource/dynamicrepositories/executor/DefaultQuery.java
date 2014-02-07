@@ -88,6 +88,11 @@ class DefaultQuery<R> implements Query<R> {
         return parameters.containsKey(name);
     }
 
+    @Override
+    public Map<String, Object> getParameters() {
+        return Collections.unmodifiableMap(parameters);
+    }
+
     void addParameter(String name, Object value) {
         this.parameters.put(name, value);
     }

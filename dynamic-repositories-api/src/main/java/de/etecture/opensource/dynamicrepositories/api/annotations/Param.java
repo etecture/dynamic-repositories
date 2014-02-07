@@ -1,6 +1,6 @@
 package de.etecture.opensource.dynamicrepositories.api.annotations;
 
-import de.etecture.opensource.dynamicrepositories.api.defaults.DefaultParamValueGenerator;
+import de.etecture.opensource.dynamicrepositories.api.utils.DefaultParamValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

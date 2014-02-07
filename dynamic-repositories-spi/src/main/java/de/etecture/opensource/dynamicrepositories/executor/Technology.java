@@ -37,25 +37,24 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.extension;
+package de.etecture.opensource.dynamicrepositories.executor;
 
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
-import javax.enterprise.util.AnnotationLiteral;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import javax.inject.Qualifier;
 
-// must be subclassed, due to select method
+/**
+ * this is a qualifier to distinguish different technologies for repository
+ * instances.
+ *
+ * @author rhk
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE, ElementType.PARAMETER})
+@Qualifier
+public @interface Technology {
 
-@SuppressWarnings(value = "AnnotationAsSuperInterface") // must be subclassed, due to select method
-public class TechnologyLiteral extends AnnotationLiteral<Technology> implements
-        Technology {
-    static final long serialVersionUID = 0;
-    private final String technologyName;
-
-    public TechnologyLiteral(String technologyName) {
-        this.technologyName = technologyName;
-    }
-
-    @Override
-    public String value() {
-        return technologyName;
-    }
+    String value();
 }

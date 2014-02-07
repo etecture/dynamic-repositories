@@ -1,7 +1,5 @@
 package de.etecture.opensource.dynamicrepositories.api.annotations;
 
-import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
-import de.etecture.opensource.dynamicrepositories.api.defaults.DefaultResultConverter;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -60,11 +58,4 @@ public @interface Query {
      */
     Param[] params() default {};
 
-    /**
-     * defines a result converter, that converts the result of the queryexecutor
-     * to another value.
-     *
-     * @return
-     */
-    Class<? extends ResultConverter> converter() default DefaultResultConverter.class;
 }

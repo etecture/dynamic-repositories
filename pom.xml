@@ -37,6 +37,7 @@
         <module>dynamic-repositories-extension</module>
         <module>dynamic-repositories-jpa</module>
         <module>dynamic-repositories-remote-neo4j</module>
+        <module>dynamic-repositories-spi</module>
     </modules>
 
     <build>

@@ -45,14 +45,14 @@ import de.etecture.opensource.dynamicrepositories.api.annotations.Offset;
 import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Repository;
 import de.etecture.opensource.dynamicrepositories.api.exceptions.EntityNotFoundException;
-import de.etecture.opensource.dynamicrepositories.executor.RepositoryMethodInvocationHandler;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.extension.RepositoryMethodInvocationHandler;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryBean;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
-import de.etecture.opensource.dynamicrepositories.spi.QueryExecutor;
-import de.etecture.opensource.dynamicrepositories.spi.Technology;
+import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.dynamicrepositories.technologies.DummyQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.SampleResultConverter;
-import de.etecture.opensource.dynamicrepositories.technologies.jpa.OldJPAQueryExecutor;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.JPAQueryExecutor;
 import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Retrieve;
 import javax.enterprise.inject.spi.Extension;
 import javax.inject.Inject;
@@ -92,7 +92,7 @@ public class SampleRepositoryIT {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war")
                 .addClasses(Sample.class, SampleRepository.class, Retrieve.class,
                 QueryExecutor.class, ParamName.class, Technology.class,
-                OldJPAQueryExecutor.class, DummyQueryExecutor.class,
+                JPAQueryExecutor.class, DummyQueryExecutor.class,
                 Offset.class, Count.class,
                 RepositoryMethodInvocationHandler.class, Repository.class,
                 RepositoryBean.class, RepositoryExtension.class,

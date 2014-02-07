@@ -8,12 +8,12 @@
         <version>2.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dynamic-repositories-jpa</artifactId>
+    <artifactId>dynamic-repositories-spi</artifactId>
     <version>2.0.0-SNAPSHOT</version>
 
-    <packaging>ejb</packaging>
+    <packaging>jar</packaging>
 	
-    <name>Dynamic CDI Entity Repositories - JPA QueryExecutor</name>
+    <name>Dynamic CDI Entity Repositories - SPI</name>
 
     <properties>
         <skipITs>true</skipITs>
@@ -28,68 +28,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>de.etecture.opensource</groupId>
-            <artifactId>dynamic-repositories-spi</artifactId>
-            <version>${project.version}</version>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>1.1</version>
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>de.etecture.opensource</groupId>
-            <artifactId>dynamic-repositories-extension</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
             <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-api</artifactId>
-            <version>6.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.8.5</version>
-            <scope>test</scope>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-            <version>4.11</version>
-        </dependency>
-        <dependency>
-            <groupId>org.easytesting</groupId>
-            <artifactId>fest-assert</artifactId>
-            <version>1.4</version>
-            <scope>test</scope>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.main.extras</groupId>
-            <artifactId>glassfish-embedded-all</artifactId>
-            <version>3.1.2.2</version>
-            <scope>test</scope>
-        </dependency>        
-        <!-- Arquillian Standard Dependencies -->
-        <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-container</artifactId>
-            <scope>test</scope>
-            <version>1.0.3.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.extension</groupId>
-            <artifactId>arquillian-persistence-api</artifactId>
-            <version>1.0.0.Alpha6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.extension</groupId>
-            <artifactId>arquillian-persistence-impl</artifactId>
-            <version>1.0.0.Alpha6</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 	
@@ -105,14 +53,6 @@
                     <compilerArguments>
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-ejb-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <ejbVersion>3.1</ejbVersion>
                 </configuration>
             </plugin>
             <plugin>
@@ -151,7 +91,7 @@
                             <goal>perform</goal>
                         </goals>
                         <configuration>
-                            <pomFileName>dynamic-repositories-jpa/pom.xml</pomFileName>
+                            <pomFileName>dynamic-repositories-spi/pom.xml</pomFileName>
                         </configuration>
                     </execution>
                 </executions>
@@ -200,28 +140,9 @@
     <distributionManagement>
         <site>
             <id>http://commons.maven.intern.etecture.de</id>
-            <url>scp://maven:maven@jenkins.intern.etecture.de/home/maven/commons/repository/jpa</url>
+            <url>scp://maven:maven@jenkins.intern.etecture.de/home/maven/commons/repository/spi</url>
         </site>
     </distributionManagement>
     
-    <profiles>
-        <profile>
-            <id>glassfish-embedded</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <skipITs>false</skipITs>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-glassfish-embedded-3.1</artifactId>
-                    <version>1.0.0.CR3</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 </project>
 

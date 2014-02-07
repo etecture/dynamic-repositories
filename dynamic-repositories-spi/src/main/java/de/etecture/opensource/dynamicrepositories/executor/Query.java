@@ -1,6 +1,7 @@
 package de.etecture.opensource.dynamicrepositories.executor;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -65,6 +66,13 @@ public interface Query<R> {
      * @return
      */
     Object getParameterValue(String name, Object defaultValue);
+
+    /**
+     * returns the parameters as an unmodifiable map.
+     *
+     * @return
+     */
+    Map<String, Object> getParameters();
 
     /**
      * returns true, if the hint with the name is specified.

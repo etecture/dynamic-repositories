@@ -1,5 +1,8 @@
-package de.etecture.opensource.dynamicrepositories.executor;
+package de.etecture.opensource.dynamicrepositories.extension;
 
+import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryBuilders;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutors;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import javax.inject.Inject;

@@ -39,7 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.extension;
 
-import de.etecture.opensource.dynamicrepositories.executor.RepositoryMethodInvocationHandler;
+import de.etecture.opensource.dynamicrepositories.executor.TechnologyLiteral;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;

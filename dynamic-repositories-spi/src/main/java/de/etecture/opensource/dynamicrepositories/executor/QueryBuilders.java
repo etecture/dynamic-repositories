@@ -1,6 +1,5 @@
 package de.etecture.opensource.dynamicrepositories.executor;
 
-import de.etecture.opensource.dynamicrepositories.extension.TechnologyLiteral;
 import java.lang.reflect.Method;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;

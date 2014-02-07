@@ -1,8 +1,7 @@
-package de.etecture.opensource.dynamicrepositories.api.defaults;
+package de.etecture.opensource.dynamicrepositories.api.utils;
 
 import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
-import org.apache.commons.beanutils.ConvertUtils;
 
 /**
  *
@@ -20,6 +19,6 @@ public class DefaultParamValueGenerator implements ParamValueGenerator {
                     "Either generator or value must be specified for parameter defintion '%s'!",
                     param.name()));
         }
-        return ConvertUtils.convert(value, param.type());
+        return param.value();
     }
 }

@@ -1,5 +1,6 @@
 package de.etecture.opensource.dynamicrepositories.api.annotations;
 
+import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -7,9 +8,11 @@ import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
 /**
- * marks an exception to be thrown, when a query does not find a result.
+ * specifies an implementation of {@link ResultConverter} and registers it.
  *
  * @author rhk
+ * @version
+ * @since
  */
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
@@ -17,5 +20,7 @@ import javax.inject.Qualifier;
     ElementType.PARAMETER,
     ElementType.FIELD,
     ElementType.TYPE})
-public @interface EntityNotFound {
+public @interface Converter {
+
+    Class<?> value();
 }
