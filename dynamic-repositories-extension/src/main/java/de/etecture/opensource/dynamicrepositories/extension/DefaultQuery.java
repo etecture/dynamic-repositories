@@ -1,5 +1,10 @@
-package de.etecture.opensource.dynamicrepositories.executor;
+package de.etecture.opensource.dynamicrepositories.extension;
 
+import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -22,13 +27,15 @@ class DefaultQuery<R> implements Query<R> {
     private final Type genericResultType;
     private final String technology;
     private final String connection;
+    private final String converter;
     private final String statement;
     private final Map<String, Object> parameters = new HashMap<>();
     private final Map<String, Object> hints = new HashMap<>();
 
     DefaultQuery(Type genericResultType, String technology,
             String connection,
-            String statement) {
+            String statement,
+            String converter) {
         this.genericResultType = genericResultType;
 
         if (genericResultType instanceof ParameterizedType) {
@@ -51,6 +58,7 @@ class DefaultQuery<R> implements Query<R> {
         this.technology = technology;
         this.connection = connection;
         this.statement = statement;
+        this.converter = converter;
     }
 
     @Override
@@ -61,6 +69,11 @@ class DefaultQuery<R> implements Query<R> {
     @Override
     public String getConnection() {
         return this.connection;
+    }
+
+    @Override
+    public String getConverter() {
+        return this.converter;
     }
 
     @Override
@@ -139,5 +152,31 @@ class DefaultQuery<R> implements Query<R> {
     @Override
     public Type getGenericResultType() {
         return genericResultType;
+    }
+
+    @Override
+    public String toString() {
+        try (
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw)) {
+            pw.printf("technology: %s%n", getTechnology());
+            pw.printf("connection: %s%n", getConnection());
+            pw.printf("statement: %s%n", getStatement());
+            pw.printf("converter: %s%n", getConverter());
+            pw.printf("resultType: %s%n", getGenericResultType());
+            pw.println("parameter:");
+            for (String paramName : getParameterNames()) {
+                pw.printf("\t%s = %s%n", paramName,
+                        getParameterValue(paramName));
+            }
+            pw.println("hints:");
+            for (String hintName : getQueryHints()) {
+                pw.printf("\t%s = %s%n", hintName, getQueryHintValue(
+                        hintName));
+            }
+            return sw.toString();
+        } catch (IOException ex) {
+            return super.toString();
+        }
     }
 }

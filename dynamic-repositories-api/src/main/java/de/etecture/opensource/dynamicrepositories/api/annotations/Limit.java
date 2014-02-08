@@ -37,25 +37,23 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api;
+package de.etecture.opensource.dynamicrepositories.api.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * this is the basis interface for all ResultConverters.
+ * if applied to a method, then this annotation marks the query to be paged with
+ * the given default size. When applied to a parameter, then this parameter is
+ * used as the page size.
  *
- * ResultConverters are used if the result of the query is not the same as the
- * methods return type.
- *
- * @param <R> the type this converter is responsible of.
  * @author rhk
  */
-public interface ResultConverter<R> {
+@Target({ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Limit {
 
-    /**
-     * does the conversion of the given result set.
-     *
-     * @param result the result set to be converted
-     * @param resultType
-     * @return a converted instance of &lt;ReturnType&gt;
-     */
-    R convert(Object result, Class<R> resultType);
+    int value() default -1;
 }

@@ -1,4 +1,4 @@
-package de.etecture.opensource.remoteneo4j;
+package de.etecture.opensource.dynamicrepositories.api.utils;
 
 import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
@@ -6,7 +6,7 @@ import java.util.UUID;
 
 /**
  * a basic implementation of the {@link ParamValueGenerator} interface to
- * generate unique * ids
+ * generate unique ids.
  *
  * @author rhk
  */

@@ -1,13 +1,18 @@
-package de.etecture.opensource.dynamicrepositories.executor;
+package de.etecture.opensource.dynamicrepositories.extension;
 
 import de.etecture.opensource.dynamicrepositories.api.HintValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Hint;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Hints;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Limit;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
 import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Params;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Queries;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Skip;
+import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryBuilder;
+import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.MissingResourceException;
@@ -68,10 +73,13 @@ public class DefaultQueryBuilder implements QueryBuilder {
     }
 
     @Override
-    public <R> Query<R> buildQuery(Method method, Object... args) {
-        String technology = "default";
+    public <R> Query<R> buildQuery(String requestedTechnology, Method method,
+            Object... args) {
+        String technology = requestedTechnology;
         String connection = "default";
+        String converter = "";
         String statement = "";
+        outer:
         for (Annotation annotation : method.getAnnotations()) {
             if (annotation.annotationType().isAnnotationPresent(
                     de.etecture.opensource.dynamicrepositories.api.annotations.Query.class)) {
@@ -84,6 +92,45 @@ public class DefaultQueryBuilder implements QueryBuilder {
                         connection);
                 statement = StringUtils
                         .defaultIfBlank(qa.statement(), statement);
+                converter = StringUtils
+                        .defaultIfBlank(qa.converter(), converter);
+            }
+            if (annotation.annotationType().isAnnotationPresent(Queries.class)) {
+                for (de.etecture.opensource.dynamicrepositories.api.annotations.Query qa
+                        : annotation.annotationType().getAnnotation(
+                        de.etecture.opensource.dynamicrepositories.api.annotations.Queries.class)
+                        .value()) {
+                    if (requestedTechnology.equals(qa.technology())) {
+                        technology = StringUtils.defaultIfBlank(qa.technology(),
+                                technology);
+                        connection = StringUtils.defaultIfBlank(qa.connection(),
+                                connection);
+                        statement = StringUtils
+                                .defaultIfBlank(qa.statement(), statement);
+                        converter = StringUtils
+                                .defaultIfBlank(qa.converter(), converter);
+                        continue outer;
+                    }
+                }
+            }
+        }
+        if (method.isAnnotationPresent(
+                de.etecture.opensource.dynamicrepositories.api.annotations.Queries.class)) {
+            for (de.etecture.opensource.dynamicrepositories.api.annotations.Query qa
+                    : method.getAnnotation(
+                    de.etecture.opensource.dynamicrepositories.api.annotations.Queries.class)
+                    .value()) {
+                if (requestedTechnology.equals(qa.technology())) {
+                    technology = StringUtils.defaultIfBlank(qa.technology(),
+                            technology);
+                    connection = StringUtils.defaultIfBlank(qa.connection(),
+                            connection);
+                    statement = StringUtils
+                            .defaultIfBlank(qa.statement(), statement);
+                    converter = StringUtils
+                            .defaultIfBlank(qa.converter(), converter);
+                    break;
+                }
             }
         }
         if (method.isAnnotationPresent(
@@ -94,11 +141,12 @@ public class DefaultQueryBuilder implements QueryBuilder {
             technology = StringUtils.defaultIfBlank(qa.technology(), technology);
             connection = StringUtils.defaultIfBlank(qa.connection(), connection);
             statement = StringUtils.defaultIfBlank(qa.statement(), statement);
+            converter = StringUtils.defaultIfBlank(qa.converter(), converter);
         }
 
         DefaultQuery<R> query = new DefaultQuery(method.getGenericReturnType(),
                 technology, connection,
-                createStatement(method, statement));
+                createStatement(method, statement), converter);
         outer:
         for (int i = 0; i < method.getParameterTypes().length; i++) {
             for (Annotation annotation : method.getParameterAnnotations()[i]) {
@@ -106,6 +154,30 @@ public class DefaultQueryBuilder implements QueryBuilder {
                     query.addParameter(((ParamName) annotation).value(),
                             args[i]);
                     continue outer;
+                }
+                if (Limit.class.isInstance(annotation)) {
+                    int limit = ((Limit) annotation).value();
+                    if (args[i] != null) {
+                        if (Number.class.isAssignableFrom(method
+                                .getParameterTypes()[i])) {
+                            limit = ((Number) args[i]).intValue();
+                        } else if (method.getParameterTypes()[i].isPrimitive()) {
+                            limit = (int) args[i];
+                        }
+                    }
+                    query.addHint(QueryHints.LIMIT, limit);
+                }
+                if (Skip.class.isInstance(annotation)) {
+                    int skip = 0;
+                    if (args[i] != null) {
+                        if (Number.class.isAssignableFrom(method
+                                .getParameterTypes()[i])) {
+                            skip = ((Number) args[i]).intValue();
+                        } else if (method.getParameterTypes()[i].isPrimitive()) {
+                            skip = (int) args[i];
+                        }
+                    }
+                    query.addHint(QueryHints.SKIP, skip);
                 }
             }
         }
@@ -124,6 +196,9 @@ public class DefaultQueryBuilder implements QueryBuilder {
             }
             if (Param.class.isInstance(annotation)) {
                 addParams(query, (Param) annotation);
+            }
+            if (Limit.class.isInstance(annotation)) {
+                query.addHint(QueryHints.LIMIT, ((Limit) annotation).value());
             }
             if (Hints.class.isInstance(annotation)) {
                 addHints(query, ((Hints) annotation).value());
@@ -180,5 +255,4 @@ public class DefaultQueryBuilder implements QueryBuilder {
             }
         }
     }
-
 }

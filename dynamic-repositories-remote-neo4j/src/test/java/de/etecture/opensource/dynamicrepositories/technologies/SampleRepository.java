@@ -67,6 +67,7 @@ public interface SampleRepository {
             + "RETURN n.name as `name`, collect(m) as `movies`, collect(DISTINCT r.role) AS `roles`")
     Actor findPersonWithMoviesByName(@ParamName("actorname") String name);
 
+    @Query
     List<Movie> findMoviesWherePersonIsAnActor(@ParamName("actorname") String name);
 
     @Query(statement = "anotherQuery")

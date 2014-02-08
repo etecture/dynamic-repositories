@@ -37,28 +37,19 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.technologies;
+package de.etecture.opensource.dynamicrepositories.api.annotations;
 
-import de.etecture.opensource.dynamicrepositories.executor.Query;
-import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
-import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
-import de.etecture.opensource.dynamicrepositories.executor.Technology;
-import javax.ejb.Singleton;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * represents a dummy implementation of {@link QueryExecutor}
+ * is a marker interface to specify this parameter as being the page index
  *
  * @author rhk
  */
-@Technology("Neo4j")
-@Singleton
-public class DummyQueryExecutor implements QueryExecutor {
-
-    @Override
-    public Object execute(
-            Query<?> query) throws QueryExecutionException {
-        System.out.printf("---> executing dummy: %s%n", query.getStatement());
-        return query.getResultType().cast(String.format(query.getStatement(),
-                query.getParameters().values().toArray()));
-    }
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Skip {
 }

@@ -37,7 +37,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories;
+package de.etecture.opensource.dynamicrepositories.technologies.jpa.test;
 
 import java.io.Serializable;
 import java.util.Objects;

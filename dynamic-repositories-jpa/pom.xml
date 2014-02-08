@@ -11,7 +11,7 @@
     <artifactId>dynamic-repositories-jpa</artifactId>
     <version>2.0.0-SNAPSHOT</version>
 
-    <packaging>ejb</packaging>
+    <packaging>jar</packaging>
 	
     <name>Dynamic CDI Entity Repositories - JPA QueryExecutor</name>
 
@@ -37,13 +37,18 @@
             <groupId>de.etecture.opensource</groupId>
             <artifactId>dynamic-repositories-extension</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>de.herschke</groupId>
+            <artifactId>cdi-converters</artifactId>
+            <version>[1.0.0,)</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
-            <version>6.0</version>
+            <version>7.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -69,9 +74,9 @@
         <dependency>
             <groupId>org.glassfish.main.extras</groupId>
             <artifactId>glassfish-embedded-all</artifactId>
-            <version>3.1.2.2</version>
+            <version>4.0</version>
             <scope>test</scope>
-        </dependency>        
+        </dependency>       
         <!-- Arquillian Standard Dependencies -->
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
@@ -109,14 +114,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-ejb-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <ejbVersion>3.1</ejbVersion>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.1</version>
                 <executions>
@@ -136,6 +133,17 @@
                                     <type>jar</type>
                                 </artifactItem>
                             </artifactItems>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>libs-copy</id>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/libs</outputDirectory>
+                            <includeScope>compile</includeScope>
                         </configuration>
                     </execution>
                 </executions>
@@ -178,6 +186,9 @@
                         <classpathDependencyExclude>javax:javaee-api</classpathDependencyExclude>
                         <classpathDependencyExclude>javax:javaee-web-api</classpathDependencyExclude>
                     </classpathDependencyExcludes>
+                    <systemProperties>
+                        <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>
+                    </systemProperties>
                 </configuration>
                 <executions>
                     <execution>

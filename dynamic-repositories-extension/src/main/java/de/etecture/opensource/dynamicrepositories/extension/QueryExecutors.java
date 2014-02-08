@@ -1,5 +1,9 @@
-package de.etecture.opensource.dynamicrepositories.executor;
+package de.etecture.opensource.dynamicrepositories.extension;
 
+import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.executor.TechnologyLiteral;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
@@ -13,6 +17,7 @@ import javax.inject.Inject;
  * @version
  * @since
  */
+@Default
 public class QueryExecutors {
 
     @Inject

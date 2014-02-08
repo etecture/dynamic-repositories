@@ -37,14 +37,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories;
+package de.etecture.opensource.dynamicrepositories.technologies.jpa.test;
 
+import de.etecture.opensource.dynamicrepositories.api.annotations.Limit;
 import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Queries;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Query;
-import de.etecture.opensource.dynamicrepositories.api.annotations.Count;
-import de.etecture.opensource.dynamicrepositories.api.extensions.DeleteSupport;
-import de.etecture.opensource.dynamicrepositories.api.annotations.Offset;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Repository;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Skip;
+import de.etecture.opensource.dynamicrepositories.api.extensions.DeleteSupport;
 import de.etecture.opensource.dynamicrepositories.api.extensions.UpdateSupport;
 import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Create;
 import de.etecture.opensource.dynamicrepositories.technologies.jpa.api.Delete;
@@ -83,6 +84,7 @@ public interface SampleRepository extends
     Sample findByIdWithException(@ParamName("id") long id) throws MyException;
 
     @Retrieve
+    @NamedQuery
     List<Sample> findAll();
 
     @Retrieve
@@ -90,24 +92,29 @@ public interface SampleRepository extends
     List<Sample> findAllByQuery();
 
     @Retrieve
-    @Count(10)
+    @Limit(10)
+    @NamedQuery
     @Query(statement = "findAll")
-    List<Sample> findAllPagedWithDefaultPageSize(@Offset int index);
+    List<Sample> findAllPagedWithDefaultPageSize(@Skip int index);
 
     @Retrieve
+    @NamedQuery
     @Query(statement = "findAll")
-    List<Sample> findAllPagedWithDynamicPageSize(@Offset int index,
-            @Count int count);
+    List<Sample> findAllPagedWithDynamicPageSize(@Skip int index,
+            @Limit int count);
 
     @Retrieve
-    //@Queries({
-    @Query(statement = "select s.name from Sample s where s.id = :id")
-    //  @Query(technology = "Neo4j", value = "dummy-%s-bliblablubb")
-    //})
+    @Queries({
+        @Query(technology = "JPA",
+               statement = "select s.name from Sample s where s.id = :id"),
+        @Query(technology = "Neo4j",
+               statement = "dummy-%s-bliblablubb")
+    })
     String getSampleName(@ParamName("id") long id);
 
     @Retrieve
-    @Query(statement = "select s from Sample s where s.id = :id")//, converter = SampleResultConverter.class)
+    @Query(statement = "select s from Sample s where s.id = :id",
+           converter = "sample")
     String getSampleString(@ParamName("id") long id);
 
     @Retrieve

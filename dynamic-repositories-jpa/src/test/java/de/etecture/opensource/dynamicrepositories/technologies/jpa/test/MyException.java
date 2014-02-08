@@ -37,25 +37,30 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.technologies;
+package de.etecture.opensource.dynamicrepositories.technologies.jpa.test;
 
-import de.etecture.opensource.dynamicrepositories.Sample;
-import de.etecture.opensource.dynamicrepositories.api.ResultConverter;
-import de.etecture.opensource.dynamicrepositories.api.annotations.Converter;
+import de.etecture.opensource.dynamicrepositories.api.annotations.EntityNotFound;
+import javax.ejb.ApplicationException;
 
 /**
- * converts a Sample value to a String value...
+ * just a sample exception...
  *
  * @author rhk
  */
-@Converter(String.class)
-public class SampleResultConverter implements ResultConverter<String> {
+@EntityNotFound
+@ApplicationException
+public class MyException extends Exception {
+    private static final long serialVersionUID = 1L;
 
-    @Override
-    public String convert(Object queryResult,
-            Class<String> resultType) {
-        System.out.printf("---> convert %s%n", queryResult);
-        return ((Sample) queryResult).getName() + "::" + ((Sample) queryResult)
-                .getId();
+    public MyException(String message) {
+        super(message);
+    }
+
+    public MyException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public MyException(Throwable cause) {
+        super(cause);
     }
 }

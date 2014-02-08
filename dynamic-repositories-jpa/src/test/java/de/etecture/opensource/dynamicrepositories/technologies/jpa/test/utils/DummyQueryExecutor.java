@@ -37,23 +37,28 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api.annotations;
+package de.etecture.opensource.dynamicrepositories.technologies.jpa.test.utils;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
+import de.etecture.opensource.dynamicrepositories.executor.Technology;
+import javax.ejb.Singleton;
 
 /**
- * if applied to a method, then this annotation marks the query to be paged with
- * the given default size. When applied to a parameter, then this parameter is
- * used as the page size.
+ * represents a dummy implementation of {@link QueryExecutor}
  *
  * @author rhk
  */
-@Target({ElementType.METHOD, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Count {
+@Technology("Neo4j")
+@Singleton
+public class DummyQueryExecutor implements QueryExecutor {
 
-    int value() default -1;
+    @Override
+    public Object execute(
+            Query<?> query) throws QueryExecutionException {
+        System.out.printf("---> executing dummy: %s%n", query.getStatement());
+        return query.getResultType().cast(String.format(query.getStatement(),
+                query.getParameters().values().toArray()));
+    }
 }

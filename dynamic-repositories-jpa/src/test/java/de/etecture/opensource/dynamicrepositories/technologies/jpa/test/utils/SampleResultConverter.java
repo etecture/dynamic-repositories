@@ -37,19 +37,30 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package de.etecture.opensource.dynamicrepositories.api.annotations;
+package de.etecture.opensource.dynamicrepositories.technologies.jpa.test.utils;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import de.etecture.opensource.dynamicrepositories.technologies.jpa.test.Sample;
+import de.herschke.converters.api.ConvertException;
+import de.herschke.converters.api.TypedConverter;
+import javax.inject.Named;
 
 /**
- * is a marker interface to specify this parameter as being the page index
+ * converts a Sample value to a String value...
  *
  * @author rhk
  */
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Offset {
+@Named("sample")
+public class SampleResultConverter implements TypedConverter<String> {
+
+    @Override
+    public String convert(Object value) throws ConvertException {
+        System.out.printf("---> convert %s%n", value);
+        return ((Sample) value).getName() + "::" + ((Sample) value)
+                .getId();
+    }
+
+    @Override
+    public String toString(String value) throws ConvertException {
+        return value;
+    }
 }

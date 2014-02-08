@@ -58,4 +58,10 @@ public @interface Query {
      */
     Param[] params() default {};
 
+    /**
+     * the name of the custom converter to be used.
+     *
+     * @return
+     */
+    String converter() default "";
 }

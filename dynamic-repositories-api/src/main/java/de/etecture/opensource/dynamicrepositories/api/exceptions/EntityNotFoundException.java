@@ -43,6 +43,7 @@ package de.etecture.opensource.dynamicrepositories.api.exceptions;
  *
  * @author rherschke
  */
+@Deprecated
 public class EntityNotFoundException extends Exception {
 
     private static final long serialVersionUID = 1L;

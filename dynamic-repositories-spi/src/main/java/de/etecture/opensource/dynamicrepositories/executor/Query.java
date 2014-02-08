@@ -36,6 +36,13 @@ public interface Query<R> {
     String getStatement();
 
     /**
+     * the name of a custom converter to be used to convert the result set.
+     *
+     * @return
+     */
+    String getConverter();
+
+    /**
      * returns true, if the parameter with the name is specified.
      *
      * @param name

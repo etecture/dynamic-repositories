@@ -1,4 +1,4 @@
-package de.etecture.opensource.dynamicrepositories.technologies.jpa.utils;
+package de.etecture.opensource.dynamicrepositories.utils;
 
 import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Named;

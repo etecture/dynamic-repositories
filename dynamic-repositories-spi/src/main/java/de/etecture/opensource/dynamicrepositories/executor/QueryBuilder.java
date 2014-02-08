@@ -25,9 +25,10 @@ public interface QueryBuilder {
      * builds a query for the given method and the given method arguments.
      *
      * @param <R> the type of the query
+     * @param technology the technology to build the query
      * @param method the method to build the query for
      * @param args the arguments that are given by invocation of this method
      * @return a fully defined query instance.
      */
-    <R> Query<R> buildQuery(Method method, Object... args);
+    <R> Query<R> buildQuery(String technology, Method method, Object... args);
 }
