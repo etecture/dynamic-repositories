@@ -2,6 +2,9 @@ package de.etecture.opensource.dynamicrepositories.api.utils;
 
 import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
+import de.herschke.converters.api.ConvertException;
+import de.herschke.converters.api.Converters;
+import javax.inject.Inject;
 
 /**
  *
@@ -11,6 +14,9 @@ import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
  */
 public class DefaultParamValueGenerator implements ParamValueGenerator {
 
+    @Inject
+    Converters converters;
+
     @Override
     public Object generate(Param param) {
         final String value = param.value();
@@ -19,6 +25,10 @@ public class DefaultParamValueGenerator implements ParamValueGenerator {
                     "Either generator or value must be specified for parameter defintion '%s'!",
                     param.name()));
         }
-        return param.value();
+        try {
+            return converters.select(param.type()).convert(param.value());
+        } catch (ConvertException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 }
