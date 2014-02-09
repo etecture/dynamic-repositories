@@ -21,7 +21,7 @@ import java.util.Set;
  * @version
  * @since
  */
-class DefaultQuery<R> implements Query<R> {
+public class DefaultQuery<R> implements Query<R> {
 
     private final Class<R> resultType;
     private final Type genericResultType;
@@ -32,7 +32,7 @@ class DefaultQuery<R> implements Query<R> {
     private final Map<String, Object> parameters = new HashMap<>();
     private final Map<String, Object> hints = new HashMap<>();
 
-    DefaultQuery(Type genericResultType, String technology,
+    public DefaultQuery(Type genericResultType, String technology,
             String connection,
             String statement,
             String converter) {
