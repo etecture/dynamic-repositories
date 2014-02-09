@@ -26,6 +26,7 @@ import javax.inject.Inject;
  */
 @Technology("Neo4j")
 public class Neo4jQueryExecutor implements QueryExecutor {
+
     private static final Logger LOG = Logger.getLogger(Neo4jQueryExecutor.class
             .getName());
     @Inject
@@ -36,16 +37,21 @@ public class Neo4jQueryExecutor implements QueryExecutor {
             throw new InjectionException(
                     "no neo4j uplinks found. please provide implementation for connection: "
                     + connection);
-        } else {
-            if ("".equals(connection) || "default".equals(connection)) {
-                if (uplinks.isAmbiguous()) {
-                    return uplinks.select(new DefaultLiteral()).get();
-                } else {
-                    return uplinks.get();
-                }
+        } else if (uplinks.isAmbiguous()) {
+            if ("".equals(connection) || "default"
+                    .equals(connection)) {
+                return uplinks.select(new DefaultLiteral()).get();
             } else {
+                for (Neo4jUplink uplink : uplinks) {
+                    System.out.println("found: " + uplink.getClass().getName());
+                }
                 return uplinks.select(new NamedLiteral(connection)).get();
             }
+        } else if ("".equals(connection) || "default".equals(connection)) {
+            return uplinks.get();
+        } else {
+            throw new InjectionException(
+                    "cannot find a neo4j-uplink for connection: " + connection);
         }
     }
 

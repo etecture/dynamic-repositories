@@ -43,6 +43,7 @@ import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.dynamicrepositories.extension.RepositoryExtension;
 import de.etecture.opensource.dynamicrepositories.technologies.neo4j.Neo4jQueryExecutor;
 import de.etecture.opensource.jeelogging.bridges.sysout.SysoutLoggingBridge;
+import de.herschke.neo4j.uplink.cdi.Neo4jUplinkProducer;
 import java.io.File;
 import java.util.List;
 import javax.enterprise.inject.spi.Extension;
@@ -77,7 +78,7 @@ public class SampleRepositoryIT {
     public static WebArchive createTestArchive() {
         WebArchive wa = ShrinkWrap.create(WebArchive.class, "sample.war");
         wa.addClasses(Actor.class, Movie.class, SampleRepository.class,
-                SampleConnection.class,
+                Neo4jUplinkProducer.class,
                 Neo4jQueryExecutor.class,
                 SysoutLoggingBridge.class);
         wa.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");

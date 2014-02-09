@@ -11,7 +11,7 @@
     <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Dynamic CDI Entity Repositories - Neo4j RemoteAccess QueryExecutor</name>
+    <name>Dynamic CDI Entity Repositories - Neo4j QueryExecutor</name>
 
     <properties>
         <skipITs>true</skipITs>
@@ -39,6 +39,12 @@
             <groupId>de.herschke</groupId>
             <artifactId>neo4j-uplink-core</artifactId>
             <version>[2.0.0,)</version>
+        </dependency>
+        <dependency>
+            <groupId>de.herschke</groupId>
+            <artifactId>neo4j-uplink-cdi</artifactId>
+            <version>[2.0.0,)</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
