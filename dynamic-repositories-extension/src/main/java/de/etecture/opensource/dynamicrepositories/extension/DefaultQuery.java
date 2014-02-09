@@ -106,7 +106,7 @@ public class DefaultQuery<R> implements Query<R> {
         return Collections.unmodifiableMap(parameters);
     }
 
-    void addParameter(String name, Object value) {
+    public void addParameter(String name, Object value) {
         this.parameters.put(name, value);
     }
 
@@ -135,7 +135,7 @@ public class DefaultQuery<R> implements Query<R> {
         return hints.containsKey(name);
     }
 
-    void addHint(String name, Object value) {
+    public void addHint(String name, Object value) {
         this.hints.put(name, value);
     }
 
