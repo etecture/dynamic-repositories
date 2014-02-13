@@ -13,9 +13,10 @@ public interface QueryExecutor {
     /**
      * executes the query.
      *
-     * @param query the query to
+     * @param context the context to execute
      * @return the result for this query
      * @throws QueryExecutionException
      */
-    Object execute(Query<?> query) throws QueryExecutionException;
+    Object execute(QueryExecutionContext<?> context) throws
+            QueryExecutionException;
 }

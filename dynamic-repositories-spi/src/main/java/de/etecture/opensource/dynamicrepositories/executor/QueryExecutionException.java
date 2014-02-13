@@ -1,7 +1,7 @@
 package de.etecture.opensource.dynamicrepositories.executor;
 
 /**
- * the base exception for all query executors.
+ * the base exception for all context executors.
  *
  * @author rhk
  * @version
@@ -10,45 +10,47 @@ package de.etecture.opensource.dynamicrepositories.executor;
 public class QueryExecutionException extends Exception {
 
     private static final long serialVersionUID = 1L;
-    private final Query query;
+    private final QueryExecutionContext context;
 
     /**
      *
-     * @param query
+     * @param context
      * @param message
      */
-    public QueryExecutionException(Query query, String message) {
+    public QueryExecutionException(QueryExecutionContext context, String message) {
         super(message);
-        this.query = query;
+        this.context = context;
     }
 
     /**
      *
-     * @param query
+     * @param context
      * @param message
      * @param cause
      */
-    public QueryExecutionException(Query query, String message, Throwable cause) {
+    public QueryExecutionException(QueryExecutionContext context, String message,
+            Throwable cause) {
         super(message, cause);
-        this.query = query;
+        this.context = context;
     }
 
     /**
      *
-     * @param query
+     * @param context
      * @param cause
      */
-    public QueryExecutionException(Query query, Throwable cause) {
+    public QueryExecutionException(QueryExecutionContext context,
+            Throwable cause) {
         super(cause);
-        this.query = query;
+        this.context = context;
     }
 
     /**
-     * returns the query, that raises this exception.
+     * returns the context, that raises this exception.
      *
      * @return
      */
-    public Query getQuery() {
-        return query;
+    public QueryExecutionContext getQueryExecutionContext() {
+        return context;
     }
 }

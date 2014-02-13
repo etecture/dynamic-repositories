@@ -9,15 +9,15 @@ package de.etecture.opensource.dynamicrepositories.executor;
 @SuppressWarnings("serial")
 public class NoResultException extends QueryExecutionException {
 
-    public NoResultException(Query query, String message) {
+    public NoResultException(QueryExecutionContext query, String message) {
         super(query, message);
     }
 
-    public NoResultException(Query query, String message, Throwable cause) {
+    public NoResultException(QueryExecutionContext query, String message, Throwable cause) {
         super(query, message, cause);
     }
 
-    public NoResultException(Query query, Throwable cause) {
+    public NoResultException(QueryExecutionContext query, Throwable cause) {
         super(query, cause);
     }
 }

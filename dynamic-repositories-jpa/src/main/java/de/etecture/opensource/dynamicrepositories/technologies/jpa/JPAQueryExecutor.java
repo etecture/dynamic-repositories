@@ -1,11 +1,11 @@
 package de.etecture.opensource.dynamicrepositories.technologies.jpa;
 
+import de.etecture.opensource.dynamicrepositories.api.DefaultQueryHints;
 import de.etecture.opensource.dynamicrepositories.executor.NoResultException;
 import de.etecture.opensource.dynamicrepositories.executor.NonUniqueResultException;
-import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
-import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
 import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.dynamicrepositories.utils.DefaultLiteral;
 import de.etecture.opensource.dynamicrepositories.utils.NamedLiteral;
@@ -40,26 +40,29 @@ public class JPAQueryExecutor implements QueryExecutor {
 
     @Override
     public Object execute(
-            Query<?> query) throws QueryExecutionException {
+            QueryExecutionContext<?> context) throws QueryExecutionException {
         try {
-            AbstractConnection connection = resolve(query.getConnection());
-            switch (query.getQueryHintValue(JPAQueryHints.QUERY_KIND).toString()) {
+            AbstractConnection connection = resolve(context.getQuery()
+                    .getConnection());
+            switch (context.getQueryHintValue(JPAQueryHints.QUERY_KIND)
+                    .toString()) {
                 case "CREATE":
-                    return create(connection, query);
+                    return create(connection, context);
                 case "UPDATE":
-                    return update(connection, query);
+                    return update(connection, context);
                 case "DELETE":
-                    return delete(connection, query);
+                    return delete(connection, context);
                 case "RETRIEVE":
                 default:
-                    return retrieve(connection, query);
+                    return retrieve(connection, context);
             }
         } catch (EntityNotFoundException | javax.persistence.NoResultException ex) {
-            throw new NoResultException(query, ex);
+            throw new NoResultException(context, ex);
         } catch (EntityExistsException ex) {
-            throw new NonUniqueResultException(query, ex);
+            throw new NonUniqueResultException(context, ex);
         } catch (PersistenceException ex) {
-            throw new QueryExecutionException(query, "cannot execute query", ex);
+            throw new QueryExecutionException(context, "cannot execute query",
+                    ex);
         }
     }
 
@@ -79,36 +82,40 @@ public class JPAQueryExecutor implements QueryExecutor {
         }
     }
 
-    protected Object create(AbstractConnection connection, Query<?> query)
+    protected Object create(AbstractConnection connection,
+            QueryExecutionContext<?> query)
             throws
             QueryExecutionException {
         throw new UnsupportedOperationException(
                 "jpa create queries not yet supported!");
     }
 
-    protected Object update(AbstractConnection connection, Query<?> query)
+    protected Object update(AbstractConnection connection,
+            QueryExecutionContext<?> query)
             throws
             QueryExecutionException {
         throw new UnsupportedOperationException(
                 "jpa update queries not yet supported!");
     }
 
-    protected Object delete(AbstractConnection connection, Query<?> query)
+    protected Object delete(AbstractConnection connection,
+            QueryExecutionContext<?> query)
             throws
             QueryExecutionException {
         throw new UnsupportedOperationException(
                 "jpa delete queries not yet supported!");
     }
 
-    protected Object retrieve(AbstractConnection connection, Query<?> query)
+    protected Object retrieve(AbstractConnection connection,
+            QueryExecutionContext<?> context)
             throws
             QueryExecutionException {
-        LOG.log(Level.FINE, "execute RETRIEVE query: {0}", query);
-        int limit = (int) query.getQueryHintValue(QueryHints.LIMIT, -1);
+        LOG.log(Level.FINE, "execute RETRIEVE query: {0}", context);
+        int limit = (int) context.getQueryHintValue(DefaultQueryHints.LIMIT, -1);
         if (limit == 1) {
-            return connection.getSingleResult(query);
+            return connection.getSingleResult(context);
         } else {
-            return connection.getResultList(query);
+            return connection.getResultList(context);
         }
     }
 }

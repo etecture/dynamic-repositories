@@ -1,6 +1,6 @@
 package de.etecture.opensource.dynamicrepositories.extension;
 
-import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.executor.TechnologyLiteral;
@@ -25,8 +25,8 @@ public class QueryExecutors {
     Instance<QueryExecutor> anyExecutor;
 
     public Object execute(
-            Query<?> query) throws QueryExecutionException {
-        return resolve(query.getTechnology()).execute(query);
+            QueryExecutionContext<?> context) throws QueryExecutionException {
+        return resolve(context.getQuery().getTechnology()).execute(context);
     }
 
     private QueryExecutor resolve(

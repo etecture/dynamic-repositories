@@ -1,8 +1,8 @@
 package de.etecture.opensource.dynamicrepositories.technologies.jpa;
 
-import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.api.DefaultQueryHints;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
-import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
 import de.herschke.converters.api.ConvertException;
 import de.herschke.converters.api.Converters;
 import de.herschke.converters.api.TypedConverter;
@@ -31,12 +31,13 @@ public abstract class AbstractConnection {
 
     protected abstract EntityManager getEntityManager();
 
-    protected javax.persistence.Query createQuery(Query<?> query) {
+    protected javax.persistence.Query createQuery(
+            QueryExecutionContext<?> context) {
         EntityManager em = getEntityManager();
         javax.persistence.Query jpaQuery;
         Object queryType = null;
-        if (query.hasQueryHint(JPAQueryHints.QUERY_TYPE)) {
-            queryType = query.getQueryHintValue(JPAQueryHints.QUERY_TYPE);
+        if (context.hasQueryHint(JPAQueryHints.QUERY_TYPE)) {
+            queryType = context.getQueryHintValue(JPAQueryHints.QUERY_TYPE);
         }
         if (queryType == null) {
             queryType = "JPAQL";
@@ -44,37 +45,42 @@ public abstract class AbstractConnection {
         switch (queryType.toString()) {
             case "NAMED":
                 LOG.log(Level.FINE, "create JPA NamedQuery with name: {0}",
-                        query.getStatement());
-                jpaQuery = em.createNamedQuery(query.getStatement(), query
+                        context.getQuery().getStatement());
+                jpaQuery = em
+                        .createNamedQuery(context.getQuery().getStatement(),
+                        context
                         .getResultType());
                 break;
             case "NATIVE":
                 LOG
                         .log(Level.FINE,
-                        "create JPA NativeQuery with statement: {0}", query
-                        .getStatement());
-                jpaQuery = em.createNativeQuery(query.getStatement(), query
+                        "create JPA NativeQuery with statement: {0}", context
+                        .getQuery().getStatement());
+                jpaQuery = em.createNativeQuery(context.getQuery()
+                        .getStatement(), context
                         .getResultType());
                 break;
             default:
                 LOG.log(Level.FINE, "create JPA Query with statement: {0}",
-                        query.getStatement());
-                jpaQuery = em.createQuery(query.getStatement(), query
+                        context.getQuery().getStatement());
+                jpaQuery = em.createQuery(context.getQuery().getStatement(),
+                        context
                         .getResultType());
 
         }
-        int limit = (int) query.getQueryHintValue(QueryHints.LIMIT, -1);
+        int limit = (int) context.getQueryHintValue(DefaultQueryHints.LIMIT, -1);
         if (limit > 0) {
             LOG.log(Level.FINE, "add: {0} as max result to jpa query", limit);
             jpaQuery.setMaxResults(limit);
         }
-        int skip = (int) query.getQueryHintValue(QueryHints.SKIP, 0);
+        int skip = (int) context.getQueryHintValue(DefaultQueryHints.SKIP, 0);
         if (skip >= 0) {
             LOG.log(Level.FINE, "add: {0} as offset to jpa query", skip);
             jpaQuery.setFirstResult(skip);
         }
-        for (String parameterName : query.getParameterNames()) {
-            final Object parameterValue = query.getParameterValue(parameterName);
+        for (String parameterName : context.getParameterNames()) {
+            final Object parameterValue = context.getParameterValue(
+                    parameterName);
             LOG
                     .log(Level.FINE,
                     "add parameter: {0} with value {1} to jpa query",
@@ -85,44 +91,45 @@ public abstract class AbstractConnection {
         return jpaQuery;
     }
 
-    public <T> T convert(Query<T> query, Object value) throws ConvertException {
+    public <T> T convert(QueryExecutionContext<T> context, Object value) throws
+            ConvertException {
         TypedConverter<?> converter;
-        if (StringUtils.isNotBlank(query.getConverter())) {
+        if (StringUtils.isNotBlank(context.getQuery().getConverter())) {
             LOG.log(Level.FINE, "use converter: {0} to convert the result",
-                    query.getConverter());
-            converter = converters.select(query.getConverter());
+                    context.getQuery().getConverter());
+            converter = converters.select(context.getQuery().getConverter());
         } else {
             LOG.log(Level.FINE, "lookup a typed converter for result type: {0}",
-                    query.getResultType());
-            converter = converters.select(query.getResultType());
+                    context.getResultType());
+            converter = converters.select(context.getResultType());
         }
-        return query.getResultType().cast(converter.convert(value));
+        return context.getResultType().cast(converter.convert(value));
     }
 
-    public <T> T getSingleResult(final Query<T> query) throws
+    public <T> T getSingleResult(final QueryExecutionContext<T> context) throws
             QueryExecutionException {
-        javax.persistence.Query jpaQuery = createQuery(query);
+        javax.persistence.Query jpaQuery = createQuery(context);
         try {
             LOG.log(Level.FINER, "get single result for query: {0}", jpaQuery);
-            return convert(query, jpaQuery.getSingleResult());
+            return convert(context, jpaQuery.getSingleResult());
         } catch (NoResultException ex) {
             throw new de.etecture.opensource.dynamicrepositories.executor.NoResultException(
-                    query, ex);
+                    context, ex);
         } catch (ConvertException ex) {
-            throw new QueryExecutionException(query,
+            throw new QueryExecutionException(context,
                     "cannot convert the result for the query", ex);
         }
     }
 
-    public <T> List<T> getResultList(final Query<T> query) {
-        javax.persistence.Query jpaQuery = createQuery(query);
+    public <T> List<T> getResultList(final QueryExecutionContext<T> context) {
+        javax.persistence.Query jpaQuery = createQuery(context);
         LOG.log(Level.FINER, "get result list for query: {0}", jpaQuery);
         final List<?> resultList = jpaQuery.getResultList();
         return new AbstractList<T>() {
             @Override
             public T get(int index) {
                 try {
-                    return convert(query, resultList.get(index));
+                    return convert(context, resultList.get(index));
                 } catch (ConvertException ex) {
                     throw new RuntimeException(ex);
                 }

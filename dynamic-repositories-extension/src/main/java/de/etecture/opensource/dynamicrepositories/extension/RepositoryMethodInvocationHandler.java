@@ -4,8 +4,7 @@ import de.etecture.opensource.dynamicrepositories.api.annotations.EntityAlreadyE
 import de.etecture.opensource.dynamicrepositories.api.annotations.EntityNotFound;
 import de.etecture.opensource.dynamicrepositories.executor.NoResultException;
 import de.etecture.opensource.dynamicrepositories.executor.NonUniqueResultException;
-import de.etecture.opensource.dynamicrepositories.executor.Query;
-import de.etecture.opensource.dynamicrepositories.executor.QueryBuilder;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import javax.inject.Inject;
@@ -21,7 +20,7 @@ import javax.inject.Inject;
 public class RepositoryMethodInvocationHandler implements InvocationHandler {
 
     @Inject
-    QueryBuilder builder;
+    QueryExecutionContextBuilder builder;
     @Inject
     QueryExecutors executors;
     private String technology;
@@ -36,7 +35,7 @@ public class RepositoryMethodInvocationHandler implements InvocationHandler {
             Throwable {
         try {
             if (builder.isRepositoryMethod(method)) {
-                Query<?> query = builder.buildQuery(technology, method, args);
+                QueryExecutionContext<?> query = builder.buildQueryExecutionContext(technology, method, args);
                 return executors.execute(query);
             } else {
                 throw new UnsupportedOperationException(

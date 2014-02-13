@@ -9,15 +9,15 @@ package de.etecture.opensource.dynamicrepositories.executor;
 @SuppressWarnings("serial")
 public class NonUniqueResultException extends QueryExecutionException {
 
-    public NonUniqueResultException(Query query, String message) {
+    public NonUniqueResultException(QueryExecutionContext query, String message) {
         super(query, message);
     }
 
-    public NonUniqueResultException(Query query, String message, Throwable cause) {
+    public NonUniqueResultException(QueryExecutionContext query, String message, Throwable cause) {
         super(query, message, cause);
     }
 
-    public NonUniqueResultException(Query query, Throwable cause) {
+    public NonUniqueResultException(QueryExecutionContext query, Throwable cause) {
         super(query, cause);
     }
 }

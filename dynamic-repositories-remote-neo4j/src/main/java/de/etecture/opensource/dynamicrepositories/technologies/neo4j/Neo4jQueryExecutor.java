@@ -1,10 +1,10 @@
 package de.etecture.opensource.dynamicrepositories.technologies.neo4j;
 
+import de.etecture.opensource.dynamicrepositories.api.DefaultQueryHints;
 import de.etecture.opensource.dynamicrepositories.executor.NoResultException;
-import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
-import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
 import de.etecture.opensource.dynamicrepositories.executor.Technology;
 import de.etecture.opensource.dynamicrepositories.utils.DefaultLiteral;
 import de.etecture.opensource.dynamicrepositories.utils.NamedLiteral;
@@ -57,21 +57,21 @@ public class Neo4jQueryExecutor implements QueryExecutor {
 
     @Override
     public Object execute(
-            Query<?> query) throws QueryExecutionException {
-        LOG.log(Level.FINE, "execute RETRIEVE query: {0}", query);
-        int limit = (int) query.getQueryHintValue(QueryHints.LIMIT, -1);
+            QueryExecutionContext<?> context) throws QueryExecutionException {
+        LOG.log(Level.FINE, "execute RETRIEVE context: {0}", context);
+        int limit = (int) context.getQueryHintValue(DefaultQueryHints.LIMIT, -1);
         if (limit == 1) {
-            return getSingleResult(query);
+            return getSingleResult(context);
         } else {
-            return getResultList(query);
+            return getResultList(context);
         }
     }
 
     private <R> R getSingleResult(
-            Query<R> query) throws QueryExecutionException {
-        List<R> list = getResultList(query);
+            QueryExecutionContext<R> context) throws QueryExecutionException {
+        List<R> list = getResultList(context);
         if (list.isEmpty()) {
-            throw new NoResultException(query,
+            throw new NoResultException(context,
                     "the result list was empty. So cannot return single result");
         } else {
             return list.get(0);
@@ -79,13 +79,14 @@ public class Neo4jQueryExecutor implements QueryExecutor {
     }
 
     private <R> List<R> getResultList(
-            Query<R> query) throws QueryExecutionException {
+            QueryExecutionContext<R> context) throws QueryExecutionException {
         try {
-            Neo4jUplink uplink = resolve(query.getConnection());
-            return uplink.executeCypherQuery(query.getResultType(), query
-                    .getStatement(), query.getParameters());
+            Neo4jUplink uplink = resolve(context.getQuery().getConnection());
+            return uplink.executeCypherQuery(context.getResultType(),
+                    context
+                    .getQuery().getStatement(), context.getParameters());
         } catch (Neo4jServerException | CypherResultMappingException ex) {
-            throw new QueryExecutionException(query, ex);
+            throw new QueryExecutionException(context, ex);
         }
     }
 }

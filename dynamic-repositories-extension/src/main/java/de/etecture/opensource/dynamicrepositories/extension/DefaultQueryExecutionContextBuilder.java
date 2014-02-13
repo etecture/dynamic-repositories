@@ -1,5 +1,6 @@
 package de.etecture.opensource.dynamicrepositories.extension;
 
+import de.etecture.opensource.dynamicrepositories.api.DefaultQueryHints;
 import de.etecture.opensource.dynamicrepositories.api.HintValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.ParamValueGenerator;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Hint;
@@ -9,10 +10,10 @@ import de.etecture.opensource.dynamicrepositories.api.annotations.Param;
 import de.etecture.opensource.dynamicrepositories.api.annotations.ParamName;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Params;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Queries;
+import de.etecture.opensource.dynamicrepositories.api.annotations.Query;
 import de.etecture.opensource.dynamicrepositories.api.annotations.Skip;
-import de.etecture.opensource.dynamicrepositories.executor.Query;
-import de.etecture.opensource.dynamicrepositories.executor.QueryBuilder;
-import de.etecture.opensource.dynamicrepositories.executor.QueryHints;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
+import de.etecture.opensource.dynamicrepositories.metadata.AnnotatedQueryDefinition;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.MissingResourceException;
@@ -20,7 +21,6 @@ import java.util.ResourceBundle;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import org.apache.commons.lang.StringUtils;
 
 /**
  *
@@ -29,7 +29,8 @@ import org.apache.commons.lang.StringUtils;
  * @since
  */
 @Default
-public class DefaultQueryBuilder implements QueryBuilder {
+public class DefaultQueryExecutionContextBuilder implements
+        QueryExecutionContextBuilder {
 
     @Inject
     Instance<HintValueGenerator> hintValueGenerators;
@@ -73,80 +74,52 @@ public class DefaultQueryBuilder implements QueryBuilder {
     }
 
     @Override
-    public <R> Query<R> buildQuery(String requestedTechnology, Method method,
+    public <R> QueryExecutionContext<R> buildQueryExecutionContext(
+            final String requestedTechnology, final Method method,
             Object... args) {
-        String technology = requestedTechnology;
-        String connection = "default";
-        String converter = "";
-        String statement = "";
+        Query qa = null;
         outer:
         for (Annotation annotation : method.getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(
-                    de.etecture.opensource.dynamicrepositories.api.annotations.Query.class)) {
-                de.etecture.opensource.dynamicrepositories.api.annotations.Query qa =
-                        annotation.annotationType().getAnnotation(
-                        de.etecture.opensource.dynamicrepositories.api.annotations.Query.class);
-                technology = StringUtils.defaultIfBlank(qa.technology(),
-                        technology);
-                connection = StringUtils.defaultIfBlank(qa.connection(),
-                        connection);
-                statement = StringUtils
-                        .defaultIfBlank(qa.statement(), statement);
-                converter = StringUtils
-                        .defaultIfBlank(qa.converter(), converter);
+            if (annotation.annotationType().isAnnotationPresent(Query.class)) {
+                qa = annotation.annotationType().getAnnotation(Query.class);
             }
             if (annotation.annotationType().isAnnotationPresent(Queries.class)) {
-                for (de.etecture.opensource.dynamicrepositories.api.annotations.Query qa
-                        : annotation.annotationType().getAnnotation(
-                        de.etecture.opensource.dynamicrepositories.api.annotations.Queries.class)
-                        .value()) {
-                    if (requestedTechnology.equals(qa.technology())) {
-                        technology = StringUtils.defaultIfBlank(qa.technology(),
-                                technology);
-                        connection = StringUtils.defaultIfBlank(qa.connection(),
-                                connection);
-                        statement = StringUtils
-                                .defaultIfBlank(qa.statement(), statement);
-                        converter = StringUtils
-                                .defaultIfBlank(qa.converter(), converter);
+                for (Query query : annotation.annotationType().getAnnotation(
+                        Queries.class).value()) {
+                    if (requestedTechnology.equals(query.technology())) {
+                        qa = query;
                         continue outer;
                     }
                 }
             }
         }
-        if (method.isAnnotationPresent(
-                de.etecture.opensource.dynamicrepositories.api.annotations.Queries.class)) {
-            for (de.etecture.opensource.dynamicrepositories.api.annotations.Query qa
-                    : method.getAnnotation(
-                    de.etecture.opensource.dynamicrepositories.api.annotations.Queries.class)
-                    .value()) {
-                if (requestedTechnology.equals(qa.technology())) {
-                    technology = StringUtils.defaultIfBlank(qa.technology(),
-                            technology);
-                    connection = StringUtils.defaultIfBlank(qa.connection(),
-                            connection);
-                    statement = StringUtils
-                            .defaultIfBlank(qa.statement(), statement);
-                    converter = StringUtils
-                            .defaultIfBlank(qa.converter(), converter);
+        if (method.isAnnotationPresent(Queries.class)) {
+            for (Query query : method.getAnnotation(Queries.class).value()) {
+                if (requestedTechnology.equals(query.technology())) {
+                    qa = query;
                     break;
                 }
             }
         }
-        if (method.isAnnotationPresent(
-                de.etecture.opensource.dynamicrepositories.api.annotations.Query.class)) {
-            de.etecture.opensource.dynamicrepositories.api.annotations.Query qa =
-                    method.getAnnotation(
-                    de.etecture.opensource.dynamicrepositories.api.annotations.Query.class);
-            technology = StringUtils.defaultIfBlank(qa.technology(), technology);
-            connection = StringUtils.defaultIfBlank(qa.connection(), connection);
-            statement = StringUtils.defaultIfBlank(qa.statement(), statement);
-            converter = StringUtils.defaultIfBlank(qa.converter(), converter);
+        if (method.isAnnotationPresent(Query.class)) {
+            qa = method.getAnnotation(Query.class);
         }
 
-        DefaultQuery<R> query = new DefaultQuery(method.getGenericReturnType(),
-                technology, connection,
-                createStatement(method, statement), converter);
+        DefaultQueryExecutionContext<R> query;
+        if (qa != null) {
+            query = new DefaultQueryExecutionContext(
+                    method.getReturnType(),
+                    method.getGenericReturnType(),
+                    new AnnotatedQueryDefinition(qa) {
+                @Override
+                public String getStatement() {
+                    return createStatement(method, super.getStatement());
+                }
+            });
+        } else {
+            throw new IllegalArgumentException("the method " + method
+                    + " is not a repository method. Must at least be annotated with @Query");
+        }
         outer:
         for (int i = 0; i < method.getParameterTypes().length; i++) {
             for (Annotation annotation : method.getParameterAnnotations()[i]) {
@@ -165,7 +138,7 @@ public class DefaultQueryBuilder implements QueryBuilder {
                             limit = (int) args[i];
                         }
                     }
-                    query.addHint(QueryHints.LIMIT, limit);
+                    query.addHint(DefaultQueryHints.LIMIT, limit);
                 }
                 if (Skip.class.isInstance(annotation)) {
                     int skip = 0;
@@ -177,7 +150,7 @@ public class DefaultQueryBuilder implements QueryBuilder {
                             skip = (int) args[i];
                         }
                     }
-                    query.addHint(QueryHints.SKIP, skip);
+                    query.addHint(DefaultQueryHints.SKIP, skip);
                 }
             }
         }
@@ -198,7 +171,8 @@ public class DefaultQueryBuilder implements QueryBuilder {
                 addParams(query, (Param) annotation);
             }
             if (Limit.class.isInstance(annotation)) {
-                query.addHint(QueryHints.LIMIT, ((Limit) annotation).value());
+                query.addHint(DefaultQueryHints.LIMIT, ((Limit) annotation)
+                        .value());
             }
             if (Hints.class.isInstance(annotation)) {
                 addHints(query, ((Hints) annotation).value());
@@ -222,11 +196,8 @@ public class DefaultQueryBuilder implements QueryBuilder {
                 addParams(query, annotation.annotationType()
                         .getAnnotation(Params.class).value());
             }
-            if (annotation.annotationType().isAnnotationPresent(
-                    de.etecture.opensource.dynamicrepositories.api.annotations.Query.class)) {
-                de.etecture.opensource.dynamicrepositories.api.annotations.Query qa =
-                        annotation.annotationType().getAnnotation(
-                        de.etecture.opensource.dynamicrepositories.api.annotations.Query.class);
+            if (annotation.annotationType().isAnnotationPresent(Query.class)) {
+                qa = annotation.annotationType().getAnnotation(Query.class);
                 addHints(query, qa.hints());
                 addParams(query, qa.params());
             }
@@ -234,7 +205,7 @@ public class DefaultQueryBuilder implements QueryBuilder {
         return query;
     }
 
-    private void addHints(DefaultQuery query, Hint... hints) {
+    private void addHints(DefaultQueryExecutionContext query, Hint... hints) {
         for (Hint hint : hints) {
             if (hintValueGenerators == null) {
                 query.addHint(hint.name(), hint.value());
@@ -245,7 +216,7 @@ public class DefaultQueryBuilder implements QueryBuilder {
         }
     }
 
-    private void addParams(DefaultQuery query, Param... params) {
+    private void addParams(DefaultQueryExecutionContext query, Param... params) {
         for (Param param : params) {
             if (paramValueGenerators == null) {
                 query.addParameter(param.name(), param.value());

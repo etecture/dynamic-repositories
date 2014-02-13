@@ -1,15 +1,16 @@
-package de.etecture.opensource.dynamicrepositories.executor;
+package de.etecture.opensource.dynamicrepositories.extension;
 
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import java.lang.reflect.Method;
 
 /**
- * a query builder creates a Query instance.
+ * a query builder creates a QueryExecutionContext instance.
  *
  * @author rhk
  * @version
  * @since
  */
-public interface QueryBuilder {
+public interface QueryExecutionContextBuilder {
 
     /**
      * returns true, when the given method is a repository method. This means,
@@ -30,5 +31,6 @@ public interface QueryBuilder {
      * @param args the arguments that are given by invocation of this method
      * @return a fully defined query instance.
      */
-    <R> Query<R> buildQuery(String technology, Method method, Object... args);
+    <R> QueryExecutionContext<R> buildQueryExecutionContext(String technology,
+            Method method, Object... args);
 }

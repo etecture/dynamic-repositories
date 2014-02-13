@@ -1,4 +1,4 @@
-package de.etecture.opensource.dynamicrepositories.executor;
+package de.etecture.opensource.dynamicrepositories.api;
 
 /**
  * some default Query-Hints
@@ -7,7 +7,7 @@ package de.etecture.opensource.dynamicrepositories.executor;
  * @version
  * @since
  */
-public interface QueryHints {
+public interface DefaultQueryHints {
 
     /**
      * the expected limit/maximum results to be returned.

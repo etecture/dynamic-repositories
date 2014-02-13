@@ -1,5 +1,6 @@
 package de.etecture.opensource.dynamicrepositories.executor;
 
+import de.etecture.opensource.dynamicrepositories.metadata.QueryDefinition;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
@@ -12,35 +13,28 @@ import java.util.Set;
  * @version
  * @since
  */
-public interface Query<R> {
+public interface QueryExecutionContext<R> {
 
     /**
-     * the technology this query is defined for.
+     * returns the query for this execution context.
      *
      * @return
      */
-    String getTechnology();
+    QueryDefinition getQuery();
 
     /**
-     * the connection name this query is defined for.
+     * the expected type of the result for this query
      *
      * @return
      */
-    String getConnection();
+    Class<R> getResultType();
 
     /**
-     * the statement that this query represents.
+     * the expected type of the result for this query
      *
      * @return
      */
-    String getStatement();
-
-    /**
-     * the name of a custom converter to be used to convert the result set.
-     *
-     * @return
-     */
-    String getConverter();
+    Type getGenericResultType();
 
     /**
      * returns true, if the parameter with the name is specified.
@@ -112,18 +106,4 @@ public interface Query<R> {
      * @return
      */
     Object getQueryHintValue(String name, Object defaultValue);
-
-    /**
-     * the expected type of the result for this query
-     *
-     * @return
-     */
-    Class<R> getResultType();
-
-    /**
-     * the expected type of the result for this query
-     *
-     * @return
-     */
-    Type getGenericResultType();
 }

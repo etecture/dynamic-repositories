@@ -39,7 +39,7 @@
  */
 package de.etecture.opensource.dynamicrepositories.technologies.jpa.test.utils;
 
-import de.etecture.opensource.dynamicrepositories.executor.Query;
+import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionContext;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutionException;
 import de.etecture.opensource.dynamicrepositories.executor.QueryExecutor;
 import de.etecture.opensource.dynamicrepositories.executor.Technology;
@@ -56,9 +56,11 @@ public class DummyQueryExecutor implements QueryExecutor {
 
     @Override
     public Object execute(
-            Query<?> query) throws QueryExecutionException {
-        System.out.printf("---> executing dummy: %s%n", query.getStatement());
-        return query.getResultType().cast(String.format(query.getStatement(),
-                query.getParameters().values().toArray()));
+            QueryExecutionContext<?> context) throws QueryExecutionException {
+        System.out.printf("---> executing dummy: %s%n", context.getQuery()
+                .getStatement());
+        return context.getResultType().cast(String.format(context
+                .getQuery().getStatement(),
+                context.getParameters().values().toArray()));
     }
 }
