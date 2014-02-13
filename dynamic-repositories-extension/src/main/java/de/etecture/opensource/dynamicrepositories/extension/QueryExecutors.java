@@ -24,8 +24,8 @@ public class QueryExecutors {
     @Any
     Instance<QueryExecutor> anyExecutor;
 
-    public Object execute(
-            QueryExecutionContext<?> context) throws QueryExecutionException {
+    public <R> R execute(
+            QueryExecutionContext<R> context) throws QueryExecutionException {
         return resolve(context.getQuery().getTechnology()).execute(context);
     }
 

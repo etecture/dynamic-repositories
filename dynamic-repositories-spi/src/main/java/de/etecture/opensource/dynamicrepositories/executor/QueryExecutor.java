@@ -17,6 +17,6 @@ public interface QueryExecutor {
      * @return the result for this query
      * @throws QueryExecutionException
      */
-    Object execute(QueryExecutionContext<?> context) throws
+    <R> R execute(QueryExecutionContext<R> context) throws
             QueryExecutionException;
 }
