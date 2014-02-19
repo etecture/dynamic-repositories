@@ -14,6 +14,7 @@ import de.herschke.neo4j.uplink.api.Neo4jUplink;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.InjectionException;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -25,6 +26,7 @@ import javax.inject.Inject;
  * @since
  */
 @Technology("Neo4j")
+@Any
 public class Neo4jQueryExecutor implements QueryExecutor {
 
     private static final Logger LOG = Logger.getLogger(Neo4jQueryExecutor.class

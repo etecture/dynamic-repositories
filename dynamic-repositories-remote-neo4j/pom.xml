@@ -186,7 +186,7 @@
                                 <artifactItem>
                                     <artifactId>cdi-converters</artifactId>
                                     <groupId>de.herschke</groupId>
-                                    <version>1.0.1</version>
+                                    <version>1.0.2-SNAPSHOT</version>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -201,7 +201,7 @@
                     <dependency>
                         <groupId>de.herschke</groupId>
                         <artifactId>cdi-converters</artifactId>
-                        <version>1.0.1</version>
+                        <version>1.0.2-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -22,14 +22,14 @@ public @interface Query {
      *
      * @return
      */
-    String technology() default "";
+    String technology() default "default";
 
     /**
      * the connection to be used to execute the query
      *
      * @return
      */
-    String connection() default "";
+    String connection() default "default";
 
     /**
      * the statement. if the statement is not applied, the following rules

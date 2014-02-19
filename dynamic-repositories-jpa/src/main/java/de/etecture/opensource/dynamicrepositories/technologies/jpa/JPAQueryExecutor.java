@@ -40,7 +40,7 @@ public class JPAQueryExecutor implements QueryExecutor {
 
     @Override
     public Object execute(
-            QueryExecutionContext<?> context) throws QueryExecutionException {
+            QueryExecutionContext context) throws QueryExecutionException {
         try {
             AbstractConnection connection = resolve(context.getQuery()
                     .getConnection());

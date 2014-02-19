@@ -56,7 +56,7 @@ public class DummyQueryExecutor implements QueryExecutor {
 
     @Override
     public Object execute(
-            QueryExecutionContext<?> context) throws QueryExecutionException {
+            QueryExecutionContext context) throws QueryExecutionException {
         System.out.printf("---> executing dummy: %s%n", context.getQuery()
                 .getStatement());
         return context.getResultType().cast(String.format(context
