@@ -57,7 +57,7 @@ public class Neo4jQueryExecutor implements QueryExecutor {
 
     @Override
     public Object execute(
-            QueryExecutionContext<?> context) throws QueryExecutionException {
+            QueryExecutionContext context) throws QueryExecutionException {
         LOG.log(Level.FINE, "execute RETRIEVE context: {0}", context);
         int limit = (int) context.getQueryHintValue(DefaultQueryHints.LIMIT, -1);
         if (limit == 1) {
