@@ -5,11 +5,11 @@
     <parent>
         <groupId>de.etecture.opensource</groupId>
         <artifactId>dynamic-repositories</artifactId>
-        <version>2.0.3-SNAPSHOT</version>
+        <version>2.0.3</version>
     </parent>
 
     <artifactId>dynamic-repositories-jpa</artifactId>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.0.3</version>
 
     <packaging>jar</packaging>
 	
@@ -206,7 +206,8 @@
         <connection>scm:git:https://github.com/etecture/dynamic-repositories.git</connection>
         <developerConnection>scm:git:https://github.com/etecture/dynamic-repositories.git</developerConnection>
         <url>https://github.com/etecture/dynamic-repositories</url>
-    </scm>
+      <tag>fmrp2</tag>
+  </scm>
 
     <distributionManagement>
         <site>
